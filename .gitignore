@@ -57,3 +57,5 @@ classes/**
 /.gradle/
 .classpath
 .settings
+
+*.json

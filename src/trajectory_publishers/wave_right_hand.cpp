@@ -39,7 +39,9 @@ using std::placeholders::_1;
 
 using namespace std::chrono_literals;
 
+// Class inheriting node 
 class WaveRightHandPublisher : public rclcpp::Node {
+  // Constructor inherits the methods from node, such as create_publisher/subscriber and create_wall_timer
  public:
   WaveRightHandPublisher() : Node("waving_hand_trajectory_publisher") {
     // Create a latching QoS to make sure the first message arrives at the trajectory manager, even if the connection is not up when
@@ -48,18 +50,25 @@ class WaveRightHandPublisher : public rclcpp::Node {
     latching_qos.transient_local();
 
     // set up publisher to trajectory topic
+    // The string indicates what the topic is subscribed/published to
     publisher_ = this->create_publisher<WholeBodyTrajectory>("/eve/whole_body_trajectory", latching_qos);
 
     // subscribe to the tractory status topic
+    // The QoS here is overloaded as 10, meaning 10 deep history instead of defining as above
     subscription_ = this->create_subscription<action_msgs::msg::GoalStatus>("/eve/whole_body_trajectory_status", 10,
                                                                             std::bind(&WaveRightHandPublisher::statusCallback, this, _1));
 
     // Create a UUID for the first message.
+    // For validating of messages
     uuidMsg_ = createRandomUuidMsg();
 
     // Because publishers and subscribers connect asynchronously, we cannot guarantee that a message that is sent immediatly arrives at the
     // trajectory manager. Therefore, we use a timer and send the message every second till it it is accepted.
-    timer_ = this->create_wall_timer(1000ms, [this]() { publishTrajectory(uuidMsg_); });
+    // Without this timer, or something else blocking, the program terminates and there are no callbacks! Even when empty, enable such a timer. 
+    // The timer does not appear very necessary for simulation (99% of the time the message arrives)
+    timer_ = this->create_wall_timer(1000ms, [this]() { 
+      publishTrajectory(uuidMsg_); 
+      });
   }
 
  private:
@@ -79,6 +88,7 @@ class WaveRightHandPublisher : public rclcpp::Node {
           break;
         case 4:
           RCLCPP_INFO(this->get_logger(), "GoalStatus: STATUS_SUCCEEDED");
+          // Only publish once, comment this and empty the timer above
           uuidMsg_ = createRandomUuidMsg();
           publishTrajectory(uuidMsg_);
           break;
@@ -97,7 +107,7 @@ class WaveRightHandPublisher : public rclcpp::Node {
     trajectory_msg.interpolation_mode.value = TrajectoryInterpolation::MINIMUM_JERK_CONSTRAINED;
     trajectory_msg.trajectory_id = uuid_msg;
 
-    // begin adding waypoint targets, the desired times {2, 4, 6} (ses) are provided in terms of
+    // begin adding waypoint targets, the desired times {2, 4, 6} (secs) are provided in terms of
     // offset from time at which this published message is received
     trajectory_msg.trajectory_points.push_back(target1(2));
     trajectory_msg.trajectory_points.push_back(target2(4));
