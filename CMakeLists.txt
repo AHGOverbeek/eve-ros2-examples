@@ -56,6 +56,9 @@ ament_target_dependencies(dab rclcpp halodi_msgs action_msgs)
 add_executable(whole_body_state_subscriber src/subscribers/whole_body_state_subscriber.cpp)
 ament_target_dependencies(whole_body_state_subscriber rclcpp halodi_msgs)
 
+add_executable(acceleration src/whole_body_publishers/acceleration.cpp)
+ament_target_dependencies(acceleration rclcpp halodi_msgs action_msgs)
+
 #############
 ## Testing ##
 #############
@@ -105,7 +108,7 @@ install(PROGRAMS
   DESTINATION lib/${PROJECT_NAME}
 )
 
-install(TARGETS default_pose drive_and_turn full_body_extreme left_hand_task_space_box neck_up_down random_arm_motion_low_range wave_right_hand whole_body_state_subscriber dab
+install(TARGETS default_pose drive_and_turn full_body_extreme left_hand_task_space_box neck_up_down random_arm_motion_low_range wave_right_hand whole_body_state_subscriber dab acceleration
   DESTINATION lib/${PROJECT_NAME}
 )
 install(DIRECTORY include/${PROJECT_NAME}/
