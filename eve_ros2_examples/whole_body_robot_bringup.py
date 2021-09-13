@@ -116,6 +116,7 @@ class WholeBodyTrajectoryPublisher(Node):
             "whole_body_robot_bringup"
         )  # initialize the underlying Node with the name whole_body_robot_bringup
 
+        # 10 is overloaded for being 10 deep history QoS
         self._publisher = self.create_publisher(
             WholeBodyTrajectory, "/eve/whole_body_trajectory", 10
         )
