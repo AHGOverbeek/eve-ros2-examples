@@ -1,5 +1,5 @@
-# A quick install
-
+# A quick install for Ubuntu 20.04
+Almost the same as on forked repo, but all in one place. 
 Install ROS, Gazebo and the build tools
 ```
 sudo apt update && sudo apt install curl gnupg2 lsb-release
@@ -48,6 +48,7 @@ And run them with
 ros2 run eve_ros2_examples wave_right_hand
 ros2 run eve_ros2_examples whole_body_robot_bringup.py
 ```
+Sometimes on first launch it takes a while for examples to run!ros2 run eve_ros2_examples wave_right_hand
 
 # Building new Python/C++
 add to /src/eve_ros2-examples/CMakeLists.txt the name of the new executable to:
