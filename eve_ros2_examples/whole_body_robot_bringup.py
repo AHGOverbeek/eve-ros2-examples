@@ -117,8 +117,9 @@ class WholeBodyTrajectoryPublisher(Node):
         )  # initialize the underlying Node with the name whole_body_robot_bringup
 
         # 10 is overloaded for being 10 deep history QoS
+        # Sometimes QoS = 10 does not work (no idea why, seems platform dependent), if not, use rclpy.qos.qos_profile_action_status_default instead
         self._publisher = self.create_publisher(
-            WholeBodyTrajectory, "/eve/whole_body_trajectory", 10
+            WholeBodyTrajectory, "/eve/whole_body_trajectory", rclpy.qos.qos_profile_action_status_default 
         )
 
         self._subscriber = self.create_subscription(
