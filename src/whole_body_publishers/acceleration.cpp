@@ -168,18 +168,37 @@ private:
     // Start from x_0, v_0 and with constant acceleration a, integrate to get the target x, v
     double x_0 = 0;
     double v_0 = 0;
-    double a = 0.1;
+    double a = 0.5;
     static uint64_t i = 0;
     double t = i*(double)0.002;
     double v = v_0 + t*a;
     double x = x_0 + t*v;
 
     WholeBodyControllerCommand torque_msg;
-    torque_msg.joint_space_commands.push_back(generateJointSpaceCommand(JointName::LEFT_ELBOW_PITCH, -2, 0, 0));
-    torque_msg.joint_space_commands.push_back(generateJointSpaceCommand(JointName::RIGHT_ELBOW_PITCH, -x, -v, -a));
+    // torque_msg.joint_space_commands.push_back(generateJointSpaceCommand(JointName::LEFT_ELBOW_PITCH, -2, 0, 0));
+    // torque_msg.joint_space_commands.push_back(generateJointSpaceCommand(JointName::RIGHT_ELBOW_PITCH, 0, 0, -a));
     // torque_msg.sequence_id = uuid_msg;
-    torque_msg.sequence_id = 13;
+    // torque_msg.sequence_id = 13;
     // unique_identifier_msgs::msg::UUID m= uuid_msg;
+
+    halodi_msgs::msg::JointSpaceCommand ret_msg;
+    halodi_msgs::msg::JointName name;
+    name.joint_id = JointName::LEFT_ELBOW_PITCH; // Negative for flexion
+    name.joint_id = JointName::RIGHT_WRIST_PITCH; // Negative for upward
+    name.joint_id = JointName::RIGHT_WRIST_ROLL; // Negative for outward
+    name.joint_id = JointName::RIGHT_SHOULDER_PITCH; // Positive for arm backwards
+    name.joint_id = JointName::RIGHT_SHOULDER_YAW; // Negative to twist arm outward
+    name.joint_id = JointName::RIGHT_SHOULDER_ROLL; // Negative for abduction
+    ret_msg.joint = name;
+    // ret_msg.q_desired = -x;
+    // ret_msg.qd_desired = -v;
+    ret_msg.qdd_desired = -a;
+    ret_msg.use_default_gains = false;
+    ret_msg.stiffness = (double) 0.0;
+    ret_msg.damping = (double) 0.0;
+
+    // Ive removed the initializzation of x and v in the underlying classes, but doesnt move without x or v for some reason
+    torque_msg.joint_space_commands.push_back(ret_msg);
     
     RCLCPP_INFO(this->get_logger(), "Sending acceleration, t = %f, v = %f, x = %f..", t, v, x);
     i++;
