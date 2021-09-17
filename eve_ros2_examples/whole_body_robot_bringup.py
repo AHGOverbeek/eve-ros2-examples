@@ -240,13 +240,13 @@ def run_warmup_loop(args=None):
     periodic_trajectory_pt_msg_1_.joint_space_commands.append(
         generate_joint_space_command_msg(JointName.NECK_PITCH, 0.0)
     )
-    periodic_trajectory_pt_msg_1_.task_space_commands.append(
-        generate_task_space_command_msg(
-            ReferenceFrameName.PELVIS,
-            ReferenceFrameName.BASE,
-            [0.0, 0.0, NOMINAL_PELVIS_HEIGHT_ABOVE_BASE, 0.0, 0.0, np.deg2rad(0.0)],
-        )
-    )  # append a desired task space pose for the pelvis WRT base
+    # periodic_trajectory_pt_msg_1_.task_space_commands.append(
+    #     generate_task_space_command_msg(
+    #         ReferenceFrameName.PELVIS,
+    #         ReferenceFrameName.BASE,
+    #         [0.0, 0.0, NOMINAL_PELVIS_HEIGHT_ABOVE_BASE, 0.0, 0.0, np.deg2rad(0.0)],
+    #     )
+    # )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
 
     cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 1
@@ -345,39 +345,39 @@ def run_warmup_loop(args=None):
     periodic_trajectory_pt_msg_6_ = WholeBodyTrajectoryPoint(
         time_from_start=Duration(sec=cumulative_seconds_from_start_)
     )
-    periodic_trajectory_pt_msg_6_.task_space_commands.append(
-        generate_task_space_command_msg(
-            ReferenceFrameName.PELVIS,
-            ReferenceFrameName.BASE,
-            [
-                0.1,
-                -0.3,
-                NOMINAL_PELVIS_HEIGHT_ABOVE_BASE,
-                np.deg2rad(20.0),
-                0.0,
-                np.deg2rad(30.0),
-            ],
-        )
-    )  # move the pelvis 0.1m forward, -0.3m to the left. Roll 20 degrees and yaw 30 degrees
+    # periodic_trajectory_pt_msg_6_.task_space_commands.append(
+    #     generate_task_space_command_msg(
+    #         ReferenceFrameName.PELVIS,
+    #         ReferenceFrameName.BASE,
+    #         [
+    #             0.1,
+    #             -0.3,
+    #             NOMINAL_PELVIS_HEIGHT_ABOVE_BASE,
+    #             np.deg2rad(20.0),
+    #             0.0,
+    #             np.deg2rad(30.0),
+    #         ],
+    #     )
+    # )  # move the pelvis 0.1m forward, -0.3m to the left. Roll 20 degrees and yaw 30 degrees
 
     cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 2
     periodic_trajectory_pt_msg_7_ = WholeBodyTrajectoryPoint(
         time_from_start=Duration(sec=cumulative_seconds_from_start_)
     )
-    periodic_trajectory_pt_msg_7_.task_space_commands.append(
-        generate_task_space_command_msg(
-            ReferenceFrameName.PELVIS,
-            ReferenceFrameName.BASE,
-            [
-                -0.1,
-                0.3,
-                NOMINAL_PELVIS_HEIGHT_ABOVE_BASE,
-                np.deg2rad(-20.0),
-                0.0,
-                np.deg2rad(-30.0),
-            ],
-        )
-    )
+    # periodic_trajectory_pt_msg_7_.task_space_commands.append(
+    #     generate_task_space_command_msg(
+    #         ReferenceFrameName.PELVIS,
+    #         ReferenceFrameName.BASE,
+    #         [
+    #             -0.1,
+    #             0.3,
+    #             NOMINAL_PELVIS_HEIGHT_ABOVE_BASE,
+    #             np.deg2rad(-20.0),
+    #             0.0,
+    #             np.deg2rad(-30.0),
+    #         ],
+    #     )
+    # )
 
     cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 3
     periodic_trajectory_pt_msg_8_ = WholeBodyTrajectoryPoint(
@@ -386,13 +386,13 @@ def run_warmup_loop(args=None):
     periodic_trajectory_pt_msg_8_.joint_space_commands.append(
         generate_joint_space_command_msg(JointName.NECK_PITCH, 0.3)
     )
-    periodic_trajectory_pt_msg_8_.task_space_commands.append(
-        generate_task_space_command_msg(
-            ReferenceFrameName.PELVIS,
-            ReferenceFrameName.BASE,
-            [0.0, 0.0, 0.65, 0.0, 0.0, np.deg2rad(0.0)],
-        )
-    )  # do a squat
+    # periodic_trajectory_pt_msg_8_.task_space_commands.append(
+    #     generate_task_space_command_msg(
+    #         ReferenceFrameName.PELVIS,
+    #         ReferenceFrameName.BASE,
+    #         [0.0, 0.0, 0.65, 0.0, 0.0, np.deg2rad(0.0)],
+    #     )
+    # )  # do a squat
 
     # an extra message to make sure the trajectory ends in a safe position
     cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 1
@@ -444,13 +444,13 @@ def run_warmup_loop(args=None):
     periodic_trajectory_pt_msg_9_.joint_space_commands.append(
         generate_joint_space_command_msg(JointName.NECK_PITCH, 0.0)
     )
-    periodic_trajectory_pt_msg_9_.task_space_commands.append(
-        generate_task_space_command_msg(
-            ReferenceFrameName.PELVIS,
-            ReferenceFrameName.BASE,
-            [0.0, 0.0, NOMINAL_PELVIS_HEIGHT_ABOVE_BASE, 0.0, 0.0, np.deg2rad(0.0)],
-        )
-    )
+    # periodic_trajectory_pt_msg_9_.task_space_commands.append(
+    #     generate_task_space_command_msg(
+    #         ReferenceFrameName.PELVIS,
+    #         ReferenceFrameName.BASE,
+    #         [0.0, 0.0, NOMINAL_PELVIS_HEIGHT_ABOVE_BASE, 0.0, 0.0, np.deg2rad(0.0)],
+    #     )
+    # )
 
     periodic_trajectory_msg_ = WholeBodyTrajectory(
         append_trajectory=False
