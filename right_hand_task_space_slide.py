@@ -113,7 +113,7 @@ class WholeBodyTrajectoryPublisher(Node):
 
     def __init__(self, initial_trajectory_msg=None, periodic_trajectory_msg=None):
         super().__init__(
-            "whole_body_robot_bringup"
+            "right_hand_task_space_slide"
         )  # initialize the underlying Node with the name whole_body_robot_bringup
 
         # 10 is overloaded for being 10 deep history QoS
@@ -195,7 +195,6 @@ def run_warmup_loop(args=None):
     periodic_trajectory_pt_msg_1_ = WholeBodyTrajectoryPoint(
         time_from_start=Duration(sec=cumulative_seconds_from_start_)
     )  # create a trajectory point msg, timestamped for 3 seconds in the future
-
     periodic_trajectory_pt_msg_1_.task_space_commands.append(
         generate_task_space_command_msg(
             ReferenceFrameName.RIGHT_HAND,
