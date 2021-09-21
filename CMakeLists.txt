@@ -104,7 +104,7 @@ endif()
 #############
 ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
-  ${PROJECT_NAME}/whole_body_robot_bringup.py right_hand_task_space_box.py all_joint_move.py
+  ${PROJECT_NAME}/whole_body_robot_bringup.py ${PROJECT_NAME}/right_hand_task_space_box.py ${PROJECT_NAME}/all_joint_move.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
