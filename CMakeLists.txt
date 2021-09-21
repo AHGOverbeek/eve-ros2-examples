@@ -56,8 +56,8 @@ ament_target_dependencies(dab rclcpp halodi_msgs action_msgs)
 add_executable(whole_body_state_subscriber src/subscribers/whole_body_state_subscriber.cpp)
 ament_target_dependencies(whole_body_state_subscriber rclcpp halodi_msgs)
 
-add_executable(acceleration src/whole_body_publishers/acceleration.cpp)
-ament_target_dependencies(acceleration rclcpp halodi_msgs action_msgs)
+add_executable(acceleration_rt src/whole_body_publishers/acceleration_rt.cpp)
+ament_target_dependencies(acceleration_rt rclcpp halodi_msgs action_msgs)
 
 #############
 ## Testing ##
@@ -104,11 +104,11 @@ endif()
 #############
 ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
-  ${PROJECT_NAME}/whole_body_robot_bringup.py ${PROJECT_NAME}/right_hand_task_space_box.py ${PROJECT_NAME}/all_joint_move.py
+  ${PROJECT_NAME}/whole_body_robot_bringup.py ${PROJECT_NAME}/right_hand_task_space_box.py ${PROJECT_NAME}/all_joint_move.py ${PROJECT_NAME}/acceleration_rt.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
-install(TARGETS default_pose drive_and_turn full_body_extreme left_hand_task_space_box neck_up_down random_arm_motion_low_range wave_right_hand whole_body_state_subscriber dab acceleration
+install(TARGETS default_pose drive_and_turn full_body_extreme left_hand_task_space_box neck_up_down random_arm_motion_low_range wave_right_hand whole_body_state_subscriber dab acceleration_rt
   DESTINATION lib/${PROJECT_NAME}
 )
 install(DIRECTORY include/${PROJECT_NAME}/
