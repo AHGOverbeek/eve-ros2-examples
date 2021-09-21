@@ -108,7 +108,7 @@ class WholeBodyCommandPublisher(Node):
 
         # 10 is overloaded for being 10 deep history QoS
         self._publisher = self.create_publisher(
-            WholeBodyControllerCommand, "/eve/whole_body_command", rclpy.qos.qos_profile_action_status_default 
+            WholeBodyControllerCommand, "/eve/whole_body_command", 10
         )
 
         self._subscriber = self.create_subscription(
@@ -185,7 +185,7 @@ def run_warmup_loop(args=None):
 
     whole_body_command_msg_ = WholeBodyControllerCommand();
     whole_body_command_msg_.joint_space_commands.append(generate_joint_space_command_msg(
-        JointName.RIGHT_ELBOW_PITCH, -1.0
+        JointName.LEFT_WRIST_ROLL, 0.2
         ))
     # whole_body_command_msg_.task_space_commands.append(generate_task_space_command_msg(
     #     ReferenceFrameName.RIGHT_HAND, ReferenceFrameName.PELVIS, [0.0, -0.01, 0.0]
