@@ -191,7 +191,7 @@ def run_warmup_loop(args=None):
     NOMINAL_PELVIS_HEIGHT_ABOVE_BASE = 0.91
     cumulative_seconds_from_start_ = 0
 
-    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 2
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 1
     periodic_trajectory_pt_msg_1_ = WholeBodyTrajectoryPoint(
         time_from_start=Duration(sec=cumulative_seconds_from_start_)
     )  # create a trajectory point msg, timestamped for 3 seconds in the future
@@ -200,12 +200,12 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.RIGHT_HAND,
             ReferenceFrameName.PELVIS,
-            [0.3, -0.3, 0.0, 0.0, -np.deg2rad(90.0), 0.0],
+            [0.25, -0.15, 0.25, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
 
-    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 2
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 1
     periodic_trajectory_pt_msg_2_ = WholeBodyTrajectoryPoint(
         time_from_start=Duration(sec=cumulative_seconds_from_start_)
     )  # create another trajectory point msg, 1 additional second in the future
@@ -213,7 +213,46 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.RIGHT_HAND,
             ReferenceFrameName.PELVIS,
-            [0.3, -0.4, 0.0, 0.0, -np.deg2rad(90.0), 0.0],
+            [0.25, -0.15, 0.0, 0.0, -np.deg2rad(90.0), 0.0],
+        )
+    )  # append a desired task space pose for the pelvis WRT base
+    # [posX, posY, posZ, roll, pitch, yaw]
+
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 1
+    periodic_trajectory_pt_msg_3_ = WholeBodyTrajectoryPoint(
+        time_from_start=Duration(sec=cumulative_seconds_from_start_)
+    )  # create another trajectory point msg, 1 additional second in the future
+    periodic_trajectory_pt_msg_3_.task_space_commands.append(
+        generate_task_space_command_msg(
+            ReferenceFrameName.RIGHT_HAND,
+            ReferenceFrameName.PELVIS,
+            [0.25, -0.4, 0.0, 0.0, -np.deg2rad(90.0), 0.0],
+        )
+    )  # append a desired task space pose for the pelvis WRT base
+    # [posX, posY, posZ, roll, pitch, yaw]
+
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 1
+    periodic_trajectory_pt_msg_4_ = WholeBodyTrajectoryPoint(
+        time_from_start=Duration(sec=cumulative_seconds_from_start_)
+    )  # create another trajectory point msg, 1 additional second in the future
+    periodic_trajectory_pt_msg_4_.task_space_commands.append(
+        generate_task_space_command_msg(
+            ReferenceFrameName.RIGHT_HAND,
+            ReferenceFrameName.PELVIS,
+            [0.25, -0.4, 0.25, 0.0, -np.deg2rad(90.0), 0.0],
+        )
+    )  # append a desired task space pose for the pelvis WRT base
+    # [posX, posY, posZ, roll, pitch, yaw]
+
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 1
+    periodic_trajectory_pt_msg_5_ = WholeBodyTrajectoryPoint(
+        time_from_start=Duration(sec=cumulative_seconds_from_start_)
+    )  # create another trajectory point msg, 1 additional second in the future
+    periodic_trajectory_pt_msg_5_.task_space_commands.append(
+        generate_task_space_command_msg(
+            ReferenceFrameName.RIGHT_HAND,
+            ReferenceFrameName.PELVIS,
+            [0.25, -0.15, 0.25, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
@@ -227,6 +266,9 @@ def run_warmup_loop(args=None):
     )  # choose an interpolation mode
     periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_1_)
     periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_2_)
+    periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_3_)
+    periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_4_)
+    periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_5_)
 
     rclpy.init(args=args)  # initialize rclpy
 
