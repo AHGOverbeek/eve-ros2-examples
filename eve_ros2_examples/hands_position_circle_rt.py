@@ -102,8 +102,10 @@ def generate_joint_space_command_msg(
 
     return msg_
 
-class counter:
-    i = 0
+# Really dirty static
+class time:
+    t = 0.0
+    dt = 0.002;
 
 class WholeBodyCommandPublisher(Node):
     """A helper/example class to publish whole body controller messages.
@@ -140,7 +142,7 @@ class WholeBodyCommandPublisher(Node):
         # # store periodic_trajectory_msg for re-publishing in goal_status_cb
         self._whole_body_command_msg = whole_body_command_msg
 
-        timer_period = 0.002  # seconds
+        timer_period = time.dt  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
         # self.status_msg_received_ever = False
 
@@ -149,15 +151,20 @@ class WholeBodyCommandPublisher(Node):
         #     self.get_logger().info("Publishing msg from timer")
 
         whole_body_command_msg_ = WholeBodyControllerCommand();
-
         whole_body_command_msg_.task_space_commands.append(generate_task_space_command_msg(
             ReferenceFrameName.RIGHT_HAND, 
             ReferenceFrameName.PELVIS, 
             # forward, left, up
-            [0.5, -0.5, counter.i/10000.0, 0.0, -np.deg2rad(90.0), 0.0]
+            [0.4, -np.cos(2*np.pi*time.t/5)/10-0.3, np.sin(2*np.pi*time.t/10)/5+0.2, 0.0, -np.deg2rad(90.0), 0.0]
+            ))
+        whole_body_command_msg_.task_space_commands.append(generate_task_space_command_msg(
+            ReferenceFrameName.LEFT_HAND, 
+            ReferenceFrameName.PELVIS, 
+            # forward, left, up
+            [0.4, np.cos(2*np.pi*time.t/5)/10+0.3, np.sin(2*np.pi*time.t/10)/5+0.2, 0.0, -np.deg2rad(90.0), 0.0]
             ))
 
-        counter.i += 1
+        time.t += time.dt
 
         self._whole_body_command_msg = whole_body_command_msg_
 

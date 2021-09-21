@@ -104,11 +104,26 @@ endif()
 #############
 ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
-  ${PROJECT_NAME}/whole_body_robot_bringup.py ${PROJECT_NAME}/right_hand_task_space_box.py ${PROJECT_NAME}/all_joint_move.py ${PROJECT_NAME}/joint_position_rt.py ${PROJECT_NAME}/joint_acceleration_rt.py ${PROJECT_NAME}/hands_position_circle_rt.py
+  ${PROJECT_NAME}/whole_body_robot_bringup.py 
+  ${PROJECT_NAME}/right_hand_task_space_box.py 
+  ${PROJECT_NAME}/all_joint_move.py 
+  ${PROJECT_NAME}/joint_position_rt.py 
+  ${PROJECT_NAME}/joint_acceleration_rt.py 
+  ${PROJECT_NAME}/hands_position_circle_rt.py
+  ${PROJECT_NAME}/hands_position_box.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
-install(TARGETS default_pose drive_and_turn full_body_extreme left_hand_task_space_box neck_up_down random_arm_motion_low_range wave_right_hand whole_body_state_subscriber dab acceleration_rt
+install(TARGETS 
+default_pose drive_and_turn 
+full_body_extreme 
+left_hand_task_space_box 
+neck_up_down 
+random_arm_motion_low_range 
+wave_right_hand 
+whole_body_state_subscriber 
+dab 
+acceleration_rt
   DESTINATION lib/${PROJECT_NAME}
 )
 install(DIRECTORY include/${PROJECT_NAME}/
