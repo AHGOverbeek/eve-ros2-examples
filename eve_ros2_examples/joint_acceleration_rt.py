@@ -65,9 +65,18 @@ def generate_task_space_command_msg(
     msg_.body_frame.frame_id = body_frame_id
     msg_.expressed_in_frame.frame_id = expressed_in_frame_id
 
-    msg_.linear_acceleration.x = xyzrpy[0]
-    msg_.linear_acceleration.y = xyzrpy[1]
-    msg_.linear_acceleration.z = xyzrpy[2]
+    msg_.pose.position.x = xyzrpy[0]
+    msg_.pose.position.y = xyzrpy[1]
+    msg_.pose.position.z = xyzrpy[2]
+    quat_ = Rotation.from_euler("xyz", xyzrpy[3:]).as_quat()  # Euler to quaternion
+    msg_.pose.orientation.x = quat_[0]
+    msg_.pose.orientation.y = quat_[1]
+    msg_.pose.orientation.z = quat_[2]
+    msg_.pose.orientation.w = quat_[3]
+
+    # msg_.linear_acceleration.x = xyzrpy[0]
+    # msg_.linear_acceleration.y = xyzrpy[1]
+    # msg_.linear_acceleration.z = xyzrpy[2]
 
     return msg_
 
@@ -96,6 +105,20 @@ def generate_joint_space_command_msg(
 
     return msg_
 
+def generate_joint_space_acc_command_msg(
+    joint_id, qdd_desired
+):
+    """Generates a joint space acc command msg.
+
+    """
+
+    msg_ = JointSpaceCommand(joint=JointName(joint_id=joint_id))
+    msg_.use_default_gains = False
+    msg_.stiffness = 0.0
+    msg_.damping = 0.0
+    msg_.qdd_desired = qdd_desired
+
+    return msg_
 
 class WholeBodyCommandPublisher(Node):
     """A helper/example class to publish whole body controller messages.
@@ -184,8 +207,9 @@ def run_warmup_loop(args=None):
 
 
     whole_body_command_msg_ = WholeBodyControllerCommand();
-    whole_body_command_msg_.joint_space_commands.append(generate_joint_space_command_msg(
-        JointName.LEFT_WRIST_ROLL, 0.2
+
+    whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
+        JointName.RIGHT_SHOULDER_ROLL, -0.2
         ))
     # whole_body_command_msg_.task_space_commands.append(generate_task_space_command_msg(
     #     ReferenceFrameName.RIGHT_HAND, ReferenceFrameName.PELVIS, [0.0, -0.01, 0.0]
