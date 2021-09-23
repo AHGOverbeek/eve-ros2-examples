@@ -35,7 +35,7 @@ from halodi_msgs.msg import (
 from rclpy.node import Node
 from scipy.spatial.transform import Rotation
 from unique_identifier_msgs.msg import UUID
-
+from geometry_msgs.msg import Vector3
 
 def generate_uuid_msg():
     """Generates a UUID msg based on the current time.
@@ -68,9 +68,10 @@ def generate_task_space_acc_command_msg(
     # msg_.pose.orientation.w = quat_[3]
 
     # disable PD the controllers
-    fbpar = FeedbackParameters3D
-    fbpar.proportional = [0,0,0]
-    fbpar.derivative = [0,0,0]
+    Vec3_zero = Vector3(x = 0.0, y = 0.0, z = 0.0)
+    fbpar = FeedbackParameters3D()
+    fbpar.proportional = Vec3_zero
+    fbpar.derivative = Vec3_zero
     msg_.position_feedback_parameters = fbpar
 
     msg_.linear_acceleration.x = xyzrpy[0]
