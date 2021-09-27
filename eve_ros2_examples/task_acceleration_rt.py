@@ -21,17 +21,12 @@ import rclpy
 import rclpy.qos
 from action_msgs.msg import GoalStatus
 from builtin_interfaces.msg import Duration
-from halodi_msgs.msg import (
-    JointName,
-    JointSpaceCommand,
-    ReferenceFrameName,
-    TaskSpaceCommand,
-    FeedbackParameters3D,
-    TrajectoryInterpolation,
-    WholeBodyTrajectory,
-    WholeBodyTrajectoryPoint,
-    WholeBodyControllerCommand
-)
+from geometry_msgs.msg import Vector3
+from halodi_msgs.msg import (FeedbackParameters3D, JointName,
+                             JointSpaceCommand, ReferenceFrameName,
+                             TaskSpaceCommand, TrajectoryInterpolation,
+                             WholeBodyControllerCommand, WholeBodyTrajectory,
+                             WholeBodyTrajectoryPoint)
 from rclpy.node import Node
 from scipy.spatial.transform import Rotation
 from unique_identifier_msgs.msg import UUID
@@ -48,7 +43,7 @@ def generate_uuid_msg():
 
 
 def generate_task_space_acc_command_msg(
-    body_frame_id, expressed_in_frame_id, xyzrpy, z_up=True
+    body_frame_id, expressed_in_frame_id, xyzrpydd, z_up=True
 ):
     """Generates a task space command msg.
 
@@ -58,28 +53,21 @@ def generate_task_space_acc_command_msg(
     msg_.body_frame.frame_id = body_frame_id
     msg_.expressed_in_frame.frame_id = expressed_in_frame_id
 
-    # msg_.pose.position.x = xyzrpy[0]
-    # msg_.pose.position.y = xyzrpy[1]
-    # msg_.pose.position.z = xyzrpy[2]
-    # quat_ = Rotation.from_euler("xyz", xyzrpy[3:]).as_quat()  # Euler to quaternion
-    # msg_.pose.orientation.x = quat_[0]
-    # msg_.pose.orientation.y = quat_[1]
-    # msg_.pose.orientation.z = quat_[2]
-    # msg_.pose.orientation.w = quat_[3]
+    # Initialize zero PD controllers
+    fbpar = FeedbackParameters3D()
+    vec0 = Vector3(x = 0.0, y = 0.0, z = 0.0)
+    fbpar.proportional = vec0
+    fbpar.derivative = vec0
+    # Disable PD the controllers
+    msg_.position_feedback_parameters = [fbpar]
+    msg_.orientation_feedback_parameters = [fbpar]
 
-    # disable PD the controllers
-    fbpar = FeedbackParameters3D
-    fbpar.proportional = [0,0,0]
-    fbpar.derivative = [0,0,0]
-    msg_.position_feedback_parameters = fbpar
-
-    msg_.linear_acceleration.x = xyzrpy[0]
-    msg_.linear_acceleration.y = xyzrpy[1]
-    msg_.linear_acceleration.z = xyzrpy[2]
-    msg_.angular_acceleration.x = 0
-    msg_.angular_acceleration.y = 0
-    msg_.angular_acceleration.z = 0
-    msg_.angular_acceleration.w = 0
+    msg_.linear_acceleration.x = xyzrpydd[0]
+    msg_.linear_acceleration.y = xyzrpydd[1]
+    msg_.linear_acceleration.z = xyzrpydd[2]
+    msg_.angular_acceleration.x = xyzrpydd[3]
+    msg_.angular_acceleration.y = xyzrpydd[4]
+    msg_.angular_acceleration.z = xyzrpydd[5]
 
     return msg_
 
@@ -120,37 +108,20 @@ class WholeBodyCommandPublisher(Node):
 
         # 10 is overloaded for being 10 deep history QoS
         self._publisher = self.create_publisher(
-            WholeBodyControllerCommand, "/eve/whole_body_command", 10
+            WholeBodyControllerCommand, "/eve/whole_body_command", rclpy.qos.qos_profile_action_status_default 
         )
 
         self._subscriber = self.create_subscription(
             GoalStatus, "/eve/whole_body_trajectory_status", self.goal_status_cb, 10
         )  # create a GoalStatus subscriber with inbound queue size of 10
 
-        # if initial_trajectory_msg is not None:
-        #     initial_trajectory_msg.trajectory_id = generate_uuid_msg()  # populate UUID
-        #     self.get_logger().info("Publishing initial trajectory ...")
-        #     self._publisher.publish(
-        #         initial_trajectory_msg
-        #     )  # publish initial_trajectory_msg
-        # else:
-        #     periodic_trajectory_msg.trajectory_id = generate_uuid_msg()  # populate UUID
-        #     self.get_logger().info("Publishing first periodic trajectory ...")
-        #     self._publisher.publish(
-        #         periodic_trajectory_msg
-        #     )  # publish periodic_trajectory_msg instead
-        # self._publisher.publish(initial_trajectory_msg);
-
         # # store periodic_trajectory_msg for re-publishing in goal_status_cb
         self._whole_body_command_msg = whole_body_command_msg
 
         timer_period = 0.002  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
-        # self.status_msg_received_ever = False
 
     def timer_callback(self):
-        # if not self.status_msg_received_ever:
-        #     self.get_logger().info("Publishing msg from timer")
         self._publisher.publish(self._whole_body_command_msg)
 
     def goal_status_cb(self, msg):
@@ -162,25 +133,6 @@ class WholeBodyCommandPublisher(Node):
 
         Returns: None
         """
-
-        # if not self.status_msg_received_ever:
-        #     self.timer.cancel()
-        #     self.get_logger().info("Timer is cancelled")
-        #     self.status_msg_received_ever = True
-
-        # if msg.status == GoalStatus.STATUS_ACCEPTED:
-        #     self.get_logger().info("Goal accepted")
-        # elif msg.status == GoalStatus.STATUS_CANCELED:
-        #     self.get_logger().info("Goal canceled")
-        # elif msg.status == GoalStatus.STATUS_ABORTED:
-        #     self.get_logger().info("Goal aborted")
-        # elif msg.status == GoalStatus.STATUS_SUCCEEDED:
-        #     self.get_logger().info("Goal succeeded!")
-        #     if self._periodic_trajectory_msg is not None:
-        #         self.get_logger().info("Republishing periodic trajectory ...")
-        #         self._periodic_trajectory_msg.trajectory_id = generate_uuid_msg()
-        #         self._publisher.publish(self._periodic_trajectory_msg)
-
 
 def run_warmup_loop(args=None):
     """An example function that moves all the joints in a repeated movement sequence.
@@ -197,7 +149,7 @@ def run_warmup_loop(args=None):
 
     whole_body_command_msg_ = WholeBodyControllerCommand();
     whole_body_command_msg_.task_space_commands.append(generate_task_space_acc_command_msg(
-        ReferenceFrameName.RIGHT_HAND, ReferenceFrameName.PELVIS, [0.0, -0.01, 0.0]
+        ReferenceFrameName.RIGHT_HAND, ReferenceFrameName.PELVIS, [-0.0, 0.0, 0.5, 0.0, 0.0, 0.0]
         ))
 
     wbcp_ = WholeBodyCommandPublisher(
