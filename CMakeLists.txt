@@ -53,6 +53,9 @@ ament_target_dependencies(wave_right_hand rclcpp halodi_msgs action_msgs)
 add_executable(dab src/trajectory_publishers/dab.cpp)
 ament_target_dependencies(dab rclcpp halodi_msgs action_msgs)
 
+add_executable(joint_position src/trajectory_publishers/joint_position.cpp)
+ament_target_dependencies(joint_position rclcpp halodi_msgs action_msgs)
+
 add_executable(whole_body_state_subscriber src/subscribers/whole_body_state_subscriber.cpp)
 ament_target_dependencies(whole_body_state_subscriber rclcpp halodi_msgs)
 
@@ -112,6 +115,7 @@ install(PROGRAMS
   ${PROJECT_NAME}/task_acceleration_rt.py 
   ${PROJECT_NAME}/hands_position_circle_rt.py
   ${PROJECT_NAME}/hands_position_box.py
+  ${PROJECT_NAME}/hands_can_clamp.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -124,6 +128,7 @@ random_arm_motion_low_range
 wave_right_hand 
 whole_body_state_subscriber 
 dab 
+joint_position
 acceleration_rt
   DESTINATION lib/${PROJECT_NAME}
 )
