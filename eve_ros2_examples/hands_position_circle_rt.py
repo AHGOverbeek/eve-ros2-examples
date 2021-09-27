@@ -113,7 +113,7 @@ class WholeBodyCommandPublisher(Node):
 
     def __init__(self, whole_body_command_msg=None):
         super().__init__(
-            "right_hand_accleration_rt"
+            "hands_position_circle_rt"
         )  # initialize the underlying Node with the name whole_body_robot_bringup
 
         # 10 is overloaded for being 10 deep history QoS
@@ -125,20 +125,6 @@ class WholeBodyCommandPublisher(Node):
             GoalStatus, "/eve/whole_body_trajectory_status", self.goal_status_cb, 10
         )  # create a GoalStatus subscriber with inbound queue size of 10
 
-        # if initial_trajectory_msg is not None:
-        #     initial_trajectory_msg.trajectory_id = generate_uuid_msg()  # populate UUID
-        #     self.get_logger().info("Publishing initial trajectory ...")
-        #     self._publisher.publish(
-        #         initial_trajectory_msg
-        #     )  # publish initial_trajectory_msg
-        # else:
-        #     periodic_trajectory_msg.trajectory_id = generate_uuid_msg()  # populate UUID
-        #     self.get_logger().info("Publishing first periodic trajectory ...")
-        #     self._publisher.publish(
-        #         periodic_trajectory_msg
-        #     )  # publish periodic_trajectory_msg instead
-        # self._publisher.publish(initial_trajectory_msg);
-
         # # store periodic_trajectory_msg for re-publishing in goal_status_cb
         self._whole_body_command_msg = whole_body_command_msg
 
@@ -147,9 +133,7 @@ class WholeBodyCommandPublisher(Node):
         # self.status_msg_received_ever = False
 
     def timer_callback(self):
-        # if not self.status_msg_received_ever:
-        #     self.get_logger().info("Publishing msg from timer")
-
+        # Trace a circle with both hands
         whole_body_command_msg_ = WholeBodyControllerCommand();
         whole_body_command_msg_.task_space_commands.append(generate_task_space_command_msg(
             ReferenceFrameName.RIGHT_HAND, 
@@ -180,26 +164,6 @@ class WholeBodyCommandPublisher(Node):
         Returns: None
         """
 
-        # if not self.status_msg_received_ever:
-        #     self.timer.cancel()
-        #     self.get_logger().info("Timer is cancelled")
-        #     self.status_msg_received_ever = True
-
-        # if msg.status == GoalStatus.STATUS_ACCEPTED:
-        #     self.get_logger().info("Goal accepted")
-        # elif msg.status == GoalStatus.STATUS_CANCELED:
-        #     self.get_logger().info("Goal canceled")
-        # elif msg.status == GoalStatus.STATUS_ABORTED:
-        #     self.get_logger().info("Goal aborted")
-        # elif msg.status == GoalStatus.STATUS_SUCCEEDED:
-        #     self.get_logger().info("Goal succeeded!")
-        #     if self._periodic_trajectory_msg is not None:
-        #         self.get_logger().info("Republishing periodic trajectory ...")
-        #         self._periodic_trajectory_msg.trajectory_id = generate_uuid_msg()
-        #         self._publisher.publish(self._periodic_trajectory_msg)
-
-
-
 def run_warmup_loop(args=None):
     """An example function that moves all the joints in a repeated movement sequence.
 
@@ -218,7 +182,7 @@ def run_warmup_loop(args=None):
         ReferenceFrameName.RIGHT_HAND, 
         ReferenceFrameName.PELVIS, 
         # forward, left, up
-        [0.5, -0.5, 0.0, 0.0, -np.deg2rad(90.0), 0.0]
+        [0.0, -0.0, 0.0, 0.0, -np.deg2rad(0.0), 0.0]
         ))
 
     wbcp_ = WholeBodyCommandPublisher(

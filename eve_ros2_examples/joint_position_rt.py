@@ -29,6 +29,7 @@ from halodi_msgs.msg import (
     TrajectoryInterpolation,
     WholeBodyTrajectory,
     WholeBodyTrajectoryPoint,
+    WholeBodyState,
     WholeBodyControllerCommand
 )
 from rclpy.node import Node
@@ -77,17 +78,17 @@ class WholeBodyCommandPublisher(Node):
 
     def __init__(self, whole_body_command_msg=None):
         super().__init__(
-            "right_hand_accleration_rt"
+            "joint_position_rt"
         )  # initialize the underlying Node with the name whole_body_robot_bringup
 
         # 10 is overloaded for being 10 deep history QoS
         self._publisher = self.create_publisher(
-            WholeBodyControllerCommand, "/eve/whole_body_command", 10
+            WholeBodyControllerCommand, "/eve/whole_body_command", rclpy.qos.qos_profile_services_default
         )
 
         self._subscriber = self.create_subscription(
-            GoalStatus, "/eve/whole_body_trajectory_status", self.goal_status_cb, 10
-        )  # create a GoalStatus subscriber with inbound queue size of 10
+            WholeBodyState, "/eve/whole_body_state", self.whole_body_state_cb, rclpy.qos.qos_profile_sensor_data
+        )  # create a WholeBodyState subscriber with inbound queue size of 10
 
         # initialize
         self._whole_body_command_msg = whole_body_command_msg
@@ -97,9 +98,10 @@ class WholeBodyCommandPublisher(Node):
 
     def timer_callback(self):
         # Publish on every timer callback
-        self._publisher.publish(self._whole_body_command_msg)
+        # self._publisher.publish(self._whole_body_command_msg)
+        pass
 
-    def goal_status_cb(self, msg):
+    def whole_body_state_cb(self, msg):
         """GoalStatus callback. Logs/prints some statuses and re-pubishes
            periodic_trajectory_msg if it was provided to the constructor.
 
@@ -108,6 +110,7 @@ class WholeBodyCommandPublisher(Node):
 
         Returns: None
         """
+        self._publisher.publish(self._whole_body_command_msg)
 
 def run_warmup_loop(args=None):
     """An example function that moves all the joints in a repeated movement sequence.
@@ -135,7 +138,7 @@ def run_warmup_loop(args=None):
         ))
 
     whole_body_command_msg_.joint_space_commands.append(generate_joint_space_command_msg(
-        JointName.RIGHT_ELBOW_PITCH, -1.6
+        JointName.RIGHT_ELBOW_PITCH, -0.0
         ))
     whole_body_command_msg_.joint_space_commands.append(generate_joint_space_command_msg(
         JointName.RIGHT_ELBOW_YAW, -0.0
