@@ -137,7 +137,8 @@ class WholeBodyCommandPublisher(Node):
         Returns: None
         """
         # Read the message's content
-        self.get_logger().info("Received update, sending acceleration, sensed data is: {0}".format(str(msg.joint_states[JointName.RIGHT_ELBOW_PITCH].desiredEffort)))
+        self.get_logger().info("Received update, sending acceleration, sensed data is: {0}"\
+            .format(str(msg.joint_states[JointName.RIGHT_ELBOW_PITCH].desiredEffort)))
         # And send new command
         self._publisher.publish(self._whole_body_command_msg)
 
