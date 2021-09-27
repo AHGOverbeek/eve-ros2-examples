@@ -26,6 +26,7 @@ from halodi_msgs.msg import (FeedbackParameters3D, JointName,
                              JointSpaceCommand, ReferenceFrameName,
                              TaskSpaceCommand, TrajectoryInterpolation,
                              WholeBodyControllerCommand, WholeBodyTrajectory,
+                             WholeBodyState,
                              WholeBodyTrajectoryPoint)
 from rclpy.node import Node
 from scipy.spatial.transform import Rotation
@@ -112,27 +113,33 @@ class WholeBodyCommandPublisher(Node):
         )
 
         self._subscriber = self.create_subscription(
-            GoalStatus, "/eve/whole_body_trajectory_status", self.goal_status_cb, 10
-        )  # create a GoalStatus subscriber with inbound queue size of 10
+            WholeBodyState, "/eve/whole_body_state", self.whole_body_state_cb, rclpy.qos.qos_profile_sensor_data
+        )  # create a WholeBodyState subscriber with inbound queue size of 10
 
         # # store periodic_trajectory_msg for re-publishing in goal_status_cb
         self._whole_body_command_msg = whole_body_command_msg
+        # self._publisher.publish(self._whole_body_command_msg)
 
         timer_period = 0.002  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):
-        self._publisher.publish(self._whole_body_command_msg)
+        # self._publisher.publish(self._whole_body_command_msg)
+        # self.get_logger().info("Sending acceleration")
+        pass
 
-    def goal_status_cb(self, msg):
-        """GoalStatus callback. Logs/prints some statuses and re-pubishes
-           periodic_trajectory_msg if it was provided to the constructor.
+    def whole_body_state_cb(self, msg):
+        """WholeBodyState callback. Logs/prints some statuses.
 
         Parameters:
         - msg (GoalStatus): msg from a GoalStatus subscription
 
         Returns: None
         """
+        # Read the message's content
+        self.get_logger().info("Received update, sending acceleration, sensed data is: {0}".format(str(msg.joint_states[JointName.RIGHT_ELBOW_PITCH].desiredEffort)))
+        # And send new command
+        self._publisher.publish(self._whole_body_command_msg)
 
 def run_warmup_loop(args=None):
     """An example function that moves all the joints in a repeated movement sequence.
