@@ -30,7 +30,7 @@ from halodi_msgs.msg import (FeedbackParameters3D, JointName,
 from rclpy.node import Node
 from scipy.spatial.transform import Rotation
 from unique_identifier_msgs.msg import UUID
-
+from geometry_msgs.msg import Vector3
 
 def generate_uuid_msg():
     """Generates a UUID msg based on the current time.
