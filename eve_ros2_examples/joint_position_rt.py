@@ -45,42 +45,6 @@ def generate_uuid_msg():
     """
     return UUID(uuid=np.asarray(list(uuid.uuid1().bytes)).astype(np.uint8))
 
-
-def generate_task_space_command_msg(
-    body_frame_id, expressed_in_frame_id, xyzrpy, z_up=True
-):
-    """Generates a task space command msg.
-
-    Parameters:
-    - body_frame_id (enum): body part to be moved, e.g. ReferenceFrameName.PELVIS
-    - expressed_in_frame_id (enum): reference frame for body_frame_id, e.g. ReferenceFrameName.BASE
-    - xyzrpy (array of 6 floats): desired pose of body_frame_id relative to expressed_in_frame_id
-      , as a list/tuple/1D np.array of [ posX, posY, posZ, rotX, rotY, rotZ ]
-    - z_up (bool): whether or not xyzrpy follows the Z-up co-ordinate convention. Default: True
-
-    Returns: TaskSpaceCommand msg
-    """
-
-    msg_ = TaskSpaceCommand(express_in_z_up=z_up)
-    msg_.body_frame.frame_id = body_frame_id
-    msg_.expressed_in_frame.frame_id = expressed_in_frame_id
-
-    msg_.pose.position.x = xyzrpy[0]
-    msg_.pose.position.y = xyzrpy[1]
-    msg_.pose.position.z = xyzrpy[2]
-    quat_ = Rotation.from_euler("xyz", xyzrpy[3:]).as_quat()  # Euler to quaternion
-    msg_.pose.orientation.x = quat_[0]
-    msg_.pose.orientation.y = quat_[1]
-    msg_.pose.orientation.z = quat_[2]
-    msg_.pose.orientation.w = quat_[3]
-
-    # msg_.linear_acceleration.x = xyzrpy[0]
-    # msg_.linear_acceleration.y = xyzrpy[1]
-    # msg_.linear_acceleration.z = xyzrpy[2]
-
-    return msg_
-
-
 def generate_joint_space_command_msg(
     joint_id, q_desired, qd_desired=0.0, qdd_desired=0.0
 ):
@@ -98,6 +62,7 @@ def generate_joint_space_command_msg(
     Returns: JointSpaceCommand msg
     """
 
+    # Needs different PD gains for use in real life
     msg_ = JointSpaceCommand(joint=JointName(joint_id=joint_id), use_default_gains=True)
     msg_.q_desired = q_desired
     msg_.qd_desired = qd_desired
@@ -124,30 +89,14 @@ class WholeBodyCommandPublisher(Node):
             GoalStatus, "/eve/whole_body_trajectory_status", self.goal_status_cb, 10
         )  # create a GoalStatus subscriber with inbound queue size of 10
 
-        # if initial_trajectory_msg is not None:
-        #     initial_trajectory_msg.trajectory_id = generate_uuid_msg()  # populate UUID
-        #     self.get_logger().info("Publishing initial trajectory ...")
-        #     self._publisher.publish(
-        #         initial_trajectory_msg
-        #     )  # publish initial_trajectory_msg
-        # else:
-        #     periodic_trajectory_msg.trajectory_id = generate_uuid_msg()  # populate UUID
-        #     self.get_logger().info("Publishing first periodic trajectory ...")
-        #     self._publisher.publish(
-        #         periodic_trajectory_msg
-        #     )  # publish periodic_trajectory_msg instead
-        # self._publisher.publish(initial_trajectory_msg);
-
-        # # store periodic_trajectory_msg for re-publishing in goal_status_cb
+        # initialize
         self._whole_body_command_msg = whole_body_command_msg
 
         timer_period = 0.002  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
-        # self.status_msg_received_ever = False
 
     def timer_callback(self):
-        # if not self.status_msg_received_ever:
-        #     self.get_logger().info("Publishing msg from timer")
+        # Publish on every timer callback
         self._publisher.publish(self._whole_body_command_msg)
 
     def goal_status_cb(self, msg):
@@ -159,25 +108,6 @@ class WholeBodyCommandPublisher(Node):
 
         Returns: None
         """
-
-        # if not self.status_msg_received_ever:
-        #     self.timer.cancel()
-        #     self.get_logger().info("Timer is cancelled")
-        #     self.status_msg_received_ever = True
-
-        # if msg.status == GoalStatus.STATUS_ACCEPTED:
-        #     self.get_logger().info("Goal accepted")
-        # elif msg.status == GoalStatus.STATUS_CANCELED:
-        #     self.get_logger().info("Goal canceled")
-        # elif msg.status == GoalStatus.STATUS_ABORTED:
-        #     self.get_logger().info("Goal aborted")
-        # elif msg.status == GoalStatus.STATUS_SUCCEEDED:
-        #     self.get_logger().info("Goal succeeded!")
-        #     if self._periodic_trajectory_msg is not None:
-        #         self.get_logger().info("Republishing periodic trajectory ...")
-        #         self._periodic_trajectory_msg.trajectory_id = generate_uuid_msg()
-        #         self._publisher.publish(self._periodic_trajectory_msg)
-
 
 def run_warmup_loop(args=None):
     """An example function that moves all the joints in a repeated movement sequence.
@@ -195,7 +125,7 @@ def run_warmup_loop(args=None):
     whole_body_command_msg_ = WholeBodyControllerCommand();
 
     whole_body_command_msg_.joint_space_commands.append(generate_joint_space_command_msg(
-        JointName.RIGHT_SHOULDER_ROLL, -0.2
+        JointName.RIGHT_SHOULDER_ROLL, -0.0
         ))
     whole_body_command_msg_.joint_space_commands.append(generate_joint_space_command_msg(
         JointName.RIGHT_SHOULDER_PITCH, -0.0
@@ -205,7 +135,7 @@ def run_warmup_loop(args=None):
         ))
 
     whole_body_command_msg_.joint_space_commands.append(generate_joint_space_command_msg(
-        JointName.RIGHT_ELBOW_PITCH, -0.0
+        JointName.RIGHT_ELBOW_PITCH, -1.6
         ))
     whole_body_command_msg_.joint_space_commands.append(generate_joint_space_command_msg(
         JointName.RIGHT_ELBOW_YAW, -0.0
@@ -266,9 +196,6 @@ def run_warmup_loop(args=None):
     whole_body_command_msg_.joint_space_commands.append(generate_joint_space_command_msg(
         JointName.ANKLE_ROLL, 0.0
         ))
-    # whole_body_command_msg_.task_space_commands.append(generate_task_space_command_msg(
-    #     ReferenceFrameName.RIGHT_HAND, ReferenceFrameName.PELVIS, [0.0, -0.01, 0.0]
-    #     ))
 
     wbcp_ = WholeBodyCommandPublisher(
         whole_body_command_msg_
