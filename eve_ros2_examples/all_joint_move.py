@@ -113,8 +113,8 @@ class WholeBodyTrajectoryPublisher(Node):
 
     def __init__(self, initial_trajectory_msg=None, periodic_trajectory_msg=None):
         super().__init__(
-            "whole_body_robot_bringup"
-        )  # initialize the underlying Node with the name whole_body_robot_bringup
+            "all_joint_move"
+        )  # initialize the underlying Node with the name all_joint_move
 
         # 10 is overloaded for being 10 deep history QoS
         # Sometimes QoS = 10 does not work (no idea why, seems platform dependent), if not, use rclpy.qos.qos_profile_action_status_default instead
