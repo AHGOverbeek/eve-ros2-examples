@@ -191,15 +191,15 @@ def run_warmup_loop(args=None):
 
     cumulative_seconds_from_start_ = 0
 
-    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 2
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 5
     periodic_trajectory_pt_msg_1_ = WholeBodyTrajectoryPoint(
         time_from_start=Duration(sec=cumulative_seconds_from_start_)
     )  # create a trajectory point msg, timestamped for 3 seconds in the future
     periodic_trajectory_pt_msg_1_.joint_space_commands.append(
-        generate_joint_space_command_msg(JointName.RIGHT_SHOULDER_PITCH, 0.0)
+        generate_joint_space_command_msg(JointName.RIGHT_SHOULDER_PITCH, -0.0)
     )  # append a desired joint position of 0.5 radians for the pitch of the right shoulder
     periodic_trajectory_pt_msg_1_.joint_space_commands.append(
-        generate_joint_space_command_msg(JointName.RIGHT_SHOULDER_ROLL, -0.0)
+        generate_joint_space_command_msg(JointName.RIGHT_SHOULDER_ROLL, -0.2)
     )
     periodic_trajectory_pt_msg_1_.joint_space_commands.append(
         generate_joint_space_command_msg(JointName.RIGHT_SHOULDER_YAW, -0.0)
@@ -217,10 +217,10 @@ def run_warmup_loop(args=None):
         generate_joint_space_command_msg(JointName.RIGHT_WRIST_ROLL, 0.0)
     )
     periodic_trajectory_pt_msg_1_.joint_space_commands.append(
-        generate_joint_space_command_msg(JointName.LEFT_SHOULDER_PITCH, 0.0)
+        generate_joint_space_command_msg(JointName.LEFT_SHOULDER_PITCH, -0.0)
     )
     periodic_trajectory_pt_msg_1_.joint_space_commands.append(
-        generate_joint_space_command_msg(JointName.LEFT_SHOULDER_ROLL, 0.0)
+        generate_joint_space_command_msg(JointName.LEFT_SHOULDER_ROLL, +0.2)
     )
     periodic_trajectory_pt_msg_1_.joint_space_commands.append(
         generate_joint_space_command_msg(JointName.LEFT_SHOULDER_YAW, 0.0)
@@ -260,21 +260,21 @@ def run_warmup_loop(args=None):
     )
 
 
-    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 2
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 5
     periodic_trajectory_pt_msg_2_ = WholeBodyTrajectoryPoint(
         time_from_start=Duration(sec=cumulative_seconds_from_start_)
     )  # create a trajectory point msg, timestamped for 3 seconds in the future
     periodic_trajectory_pt_msg_2_.joint_space_commands.append(
-        generate_joint_space_command_msg(JointName.RIGHT_SHOULDER_PITCH, 0.0)
+        generate_joint_space_command_msg(JointName.RIGHT_SHOULDER_PITCH, -0.0)
     )  # append a desired joint position of 0.5 radians for the pitch of the right shoulder
     periodic_trajectory_pt_msg_2_.joint_space_commands.append(
-        generate_joint_space_command_msg(JointName.RIGHT_SHOULDER_ROLL, -0.0)
+        generate_joint_space_command_msg(JointName.RIGHT_SHOULDER_ROLL, -0.2)
     )
     periodic_trajectory_pt_msg_2_.joint_space_commands.append(
         generate_joint_space_command_msg(JointName.RIGHT_SHOULDER_YAW, -0.0)
     )
     periodic_trajectory_pt_msg_2_.joint_space_commands.append(
-        generate_joint_space_command_msg(JointName.RIGHT_ELBOW_PITCH, -0.0)
+        generate_joint_space_command_msg(JointName.RIGHT_ELBOW_PITCH, -0.5)
     )
     periodic_trajectory_pt_msg_2_.joint_space_commands.append(
         generate_joint_space_command_msg(JointName.RIGHT_ELBOW_YAW, -0.0)
@@ -286,16 +286,16 @@ def run_warmup_loop(args=None):
         generate_joint_space_command_msg(JointName.RIGHT_WRIST_ROLL, 0.0)
     )
     periodic_trajectory_pt_msg_2_.joint_space_commands.append(
-        generate_joint_space_command_msg(JointName.LEFT_SHOULDER_PITCH, 0.0)
+        generate_joint_space_command_msg(JointName.LEFT_SHOULDER_PITCH, -0.0)
     )
     periodic_trajectory_pt_msg_2_.joint_space_commands.append(
-        generate_joint_space_command_msg(JointName.LEFT_SHOULDER_ROLL, 0.0)
+        generate_joint_space_command_msg(JointName.LEFT_SHOULDER_ROLL, +0.2)
     )
     periodic_trajectory_pt_msg_2_.joint_space_commands.append(
         generate_joint_space_command_msg(JointName.LEFT_SHOULDER_YAW, 0.0)
     )
     periodic_trajectory_pt_msg_2_.joint_space_commands.append(
-        generate_joint_space_command_msg(JointName.LEFT_ELBOW_PITCH, -0.0)
+        generate_joint_space_command_msg(JointName.LEFT_ELBOW_PITCH, -0.5)
     )
     periodic_trajectory_pt_msg_2_.joint_space_commands.append(
         generate_joint_space_command_msg(JointName.LEFT_ELBOW_YAW, 0.0)
