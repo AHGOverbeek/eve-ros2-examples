@@ -118,11 +118,11 @@ class WholeBodyTrajectoryPublisher(Node):
 
         # 10 is overloaded for being 10 deep history QoS
         self._publisher = self.create_publisher(
-            WholeBodyTrajectory, "/eve/whole_body_trajectory", 1000 
+            WholeBodyTrajectory, "/eve/whole_body_trajectory", rclpy.qos.qos_profile_action_status_default  
         )
 
         self._subscriber = self.create_subscription(
-            GoalStatus, "/eve/whole_body_trajectory_status", self.goal_status_cb, 1000
+            GoalStatus, "/eve/whole_body_trajectory_status", self.goal_status_cb, 10
         )  # create a GoalStatus subscriber with inbound queue size of 10
 
         if initial_trajectory_msg is not None:
