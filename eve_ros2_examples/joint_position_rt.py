@@ -128,7 +128,7 @@ def run_warmup_loop(args=None):
     whole_body_command_msg_ = WholeBodyControllerCommand();
 
     whole_body_command_msg_.joint_space_commands.append(generate_joint_space_command_msg(
-        JointName.RIGHT_SHOULDER_ROLL, -0.0
+        JointName.RIGHT_SHOULDER_ROLL, -0.2
         ))
     whole_body_command_msg_.joint_space_commands.append(generate_joint_space_command_msg(
         JointName.RIGHT_SHOULDER_PITCH, -0.0
@@ -152,7 +152,7 @@ def run_warmup_loop(args=None):
         ))
 
     whole_body_command_msg_.joint_space_commands.append(generate_joint_space_command_msg(
-        JointName.LEFT_SHOULDER_ROLL, 0.0
+        JointName.LEFT_SHOULDER_ROLL, 0.2
         ))
     whole_body_command_msg_.joint_space_commands.append(generate_joint_space_command_msg(
         JointName.LEFT_SHOULDER_PITCH, 0.0
