@@ -39,7 +39,6 @@ using halodi_msgs::msg::TrajectoryInterpolation;
 using halodi_msgs::msg::WholeBodyTrajectory;
 using halodi_msgs::msg::WholeBodyTrajectoryPoint;
 using halodi_msgs::msg::WholeBodyControllerCommand;
-using halodi_msgs::msg::WholeBodyState;
 using std::placeholders::_1;
 
 using namespace std::chrono_literals;
@@ -55,32 +54,44 @@ class WholeBodyPublisher : public rclcpp::Node {
     // set up publisher to trajectory topic
     publisher_ = this->create_publisher<WholeBodyControllerCommand>("/eve/whole_body_command", latching_qos);
 
-    rclcpp::QoS best_effort_qos(10);
-    best_effort_qos.best_effort();
-
-    // // subscribe to the whole body status topic
-    subscription_ = this->create_subscription<WholeBodyState>("/eve/whole_body_state", best_effort_qos,
-                                                                            std::bind(&WholeBodyPublisher::statusCallback, this, _1));
-
     // publish at 500Hz
     timer_ = this->create_wall_timer(2ms, [this]() {
       // publishVelocityInt(); 
-      // publishAccelerationInt(); 
+      publishAccelerationInt(); 
     });
-
   }
   rclcpp::Publisher<WholeBodyControllerCommand>::SharedPtr publisher_;
-  rclcpp::Subscription<WholeBodyState>::SharedPtr subscription_;
 
-private:
-  void statusCallback(WholeBodyState::SharedPtr msg) {
-    // if whole_body_state is received, send acceleration command (at about 500Hz)
-    RCLCPP_INFO(this->get_logger(), "Callback");
-    publishAcceleration();
+  void publishVelocityInt() {
+    // Start from x_0 with constant velocity v, integrate to get the target position x
+    double x_0 = 0;
+    double v = 0.1;
+    static uint64_t i = 0;
+    double t = i*(double)0.002;
+    double x = x_0 + t*v;
+
+    WholeBodyControllerCommand torque_msg;
+    torque_msg.joint_space_commands.push_back(generateJointSpaceCommand(JointName::LEFT_ELBOW_PITCH, -1.5, 0, 0));
+    torque_msg.joint_space_commands.push_back(generateJointSpaceCommand(JointName::RIGHT_ELBOW_PITCH, -x, -v, 0));
+    torque_msg.sequence_id = 13;
+    
+    RCLCPP_INFO(this->get_logger(), "Sending velocity, t = %f, v = %f, x = %f..", t, v, x);
+    i++;
+    publisher_->publish(torque_msg);
   }
 
-  void publishAcceleration() {
-    // Select a joint to use, give some examples here and their signs
+  void publishAccelerationInt() {
+    // Start from x_0, v_0 and with constant acceleration a, integrate to get the target x, v
+    double x_0 = 0;
+    double v_0 = 0;
+    double a = 0.1;
+    static uint64_t i = 0;
+    double t = i*(double)0.002;
+    double v = v_0 + t*a;
+    double x = x_0 + t*v;
+
+    WholeBodyControllerCommand torque_msg;
+    halodi_msgs::msg::JointSpaceCommand ret_msg;
     halodi_msgs::msg::JointName name;
     name.joint_id = JointName::LEFT_ELBOW_PITCH; // Negative for flexion
     name.joint_id = JointName::RIGHT_WRIST_PITCH; // Negative for upward
@@ -88,27 +99,20 @@ private:
     name.joint_id = JointName::RIGHT_SHOULDER_PITCH; // Positive for arm backwards
     name.joint_id = JointName::RIGHT_SHOULDER_YAW; // Negative to twist arm outward
     name.joint_id = JointName::RIGHT_SHOULDER_ROLL; // Negative for abduction
-    name.joint_id = JointName::RIGHT_ELBOW_PITCH; // Negative for flexion
-
-    halodi_msgs::msg::JointSpaceCommand ret_msg;
     ret_msg.joint = name;
-    
-    // Set the PD gains to zero, such that only acceleration feedforward is used
+    ret_msg.q_desired = -x;
+    ret_msg.qd_desired = -v;
+    ret_msg.qdd_desired = -a;
     ret_msg.use_default_gains = false;
-    ret_msg.stiffness = 0.0;
-    ret_msg.damping = 0.0;
-    // acceleration can then be given directly
-    ret_msg.qdd_desired = -0.1;
 
-    WholeBodyControllerCommand torque_msg;
+    // Ive removed the initializzation of x and v in the underlying classes, but doesnt move without x or v for some reason
     torque_msg.joint_space_commands.push_back(ret_msg);
     
-    RCLCPP_INFO(this->get_logger(), "Sending acceleration");
-
+    RCLCPP_INFO(this->get_logger(), "Sending acceleration, t = %f, v = %f, x = %f..", t, v, x);
+    i++;
     publisher_->publish(torque_msg);
   }
 
-  unique_identifier_msgs::msg::UUID uuidMsg_;
   rclcpp::TimerBase::SharedPtr timer_;
 };
 

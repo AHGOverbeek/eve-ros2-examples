@@ -62,6 +62,9 @@ ament_target_dependencies(whole_body_state_subscriber rclcpp halodi_msgs)
 add_executable(acceleration_rt src/whole_body_publishers/acceleration_rt.cpp)
 ament_target_dependencies(acceleration_rt rclcpp halodi_msgs action_msgs)
 
+add_executable(acceleration_int_rt src/whole_body_publishers/acceleration_int_rt.cpp)
+ament_target_dependencies(acceleration_int_rt rclcpp halodi_msgs action_msgs)
+
 #############
 ## Testing ##
 #############
@@ -130,6 +133,7 @@ whole_body_state_subscriber
 dab 
 joint_position
 acceleration_rt
+acceleration_int_rt
   DESTINATION lib/${PROJECT_NAME}
 )
 install(DIRECTORY include/${PROJECT_NAME}/

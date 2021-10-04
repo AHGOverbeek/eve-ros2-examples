@@ -203,9 +203,6 @@ def run_warmup_loop(args=None):
     whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
         jn, -0.5
         ))
-    # whole_body_command_msg_.task_space_commands.append(generate_task_space_command_msg(
-    #     ReferenceFrameName.RIGHT_HAND, ReferenceFrameName.PELVIS, [0.0, -0.01, 0.0]
-    #     ))
 
     wbcp_ = WholeBodyCommandPublisher(
         whole_body_command_msg_
