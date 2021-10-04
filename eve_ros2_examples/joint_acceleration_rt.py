@@ -141,11 +141,8 @@ class WholeBodyCommandPublisher(Node):
 
         timer_period = 0.002  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
-        # self.status_msg_received_ever = False
 
     def timer_callback(self):
-        # if not self.status_msg_received_ever:
-        #     self.get_logger().info("Publishing msg from timer")
         self._publisher.publish(self._whole_body_command_msg)
 
     def whole_body_state_cb(self, msg):
@@ -177,7 +174,7 @@ def run_warmup_loop(args=None):
     whole_body_command_msg_ = WholeBodyControllerCommand();
 
     whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
-        JointName.RIGHT_ELBOW_PITCH, -0.1
+        JointName.RIGHT_ELBOW_PITCH, -0.5
         ))
 
     wbcp_ = WholeBodyCommandPublisher(
