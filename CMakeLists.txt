@@ -114,7 +114,8 @@ install(PROGRAMS
   ${PROJECT_NAME}/right_hand_task_space_box.py 
   ${PROJECT_NAME}/all_joint_move.py 
   ${PROJECT_NAME}/joint_position_rt.py 
-  ${PROJECT_NAME}/joint_acceleration_rt.py 
+  ${PROJECT_NAME}/joint_acceleration_rt.py
+  ${PROJECT_NAME}/low_impedance_right_rt.py 
   ${PROJECT_NAME}/task_acceleration_rt.py 
   ${PROJECT_NAME}/hands_position_circle_rt.py
   ${PROJECT_NAME}/hands_position_box.py
