@@ -114,7 +114,6 @@ def generate_joint_space_acc_command_msg(
     msg_.use_default_gains = False
     msg_.stiffness = 0.0
     msg_.damping = 0.0
-    msg_.motorDampingScale = 0.0
     msg_.qdd_desired = qdd_desired
 
     return msg_
@@ -142,8 +141,11 @@ class WholeBodyCommandPublisher(Node):
 
         timer_period = 0.002  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
+        # self.status_msg_received_ever = False
 
     def timer_callback(self):
+        # if not self.status_msg_received_ever:
+        #     self.get_logger().info("Publishing msg from timer")
         self._publisher.publish(self._whole_body_command_msg)
 
     def whole_body_state_cb(self, msg):
@@ -154,9 +156,10 @@ class WholeBodyCommandPublisher(Node):
 
         Returns: None
         """
-        # diff = msg.joint_states[JointName.RIGHT_ELBOW_PITCH].desiredEffort - msg.joint_states[JointName.RIGHT_ELBOW_PITCH].measuredEffort
-        # self.get_logger().info("Received whole_body_state, difference between desired and actual force is: {0}"\
-        #     .format(str(diff)))
+        diff = 0
+        # msg.joint_states[JointName.RIGHT_ELBOW_PITCH].desiredEffort - msg.joint_states[JointName.RIGHT_ELBOW_PITCH].measuredEffort
+        self.get_logger().info("Received whole_body_state, difference between desired and actual force is: {0}"\
+            .format(str(diff)))
 
 
 def run_warmup_loop(args=None):
@@ -175,8 +178,11 @@ def run_warmup_loop(args=None):
     whole_body_command_msg_ = WholeBodyControllerCommand();
 
     whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
-        JointName.RIGHT_SHOULDER_ROLL, -0.0
+        JointName.RIGHT_ELBOW_PITCH, -0.1
         ))
+    # whole_body_command_msg_.task_space_commands.append(generate_task_space_command_msg(
+    #     ReferenceFrameName.RIGHT_HAND, ReferenceFrameName.PELVIS, [0.0, -0.01, 0.0]
+    #     ))
 
     wbcp_ = WholeBodyCommandPublisher(
         whole_body_command_msg_
