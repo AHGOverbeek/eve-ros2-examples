@@ -29,8 +29,6 @@ from halodi_msgs.msg import (
     TrajectoryInterpolation,
     WholeBodyTrajectory,
     WholeBodyTrajectoryPoint,
-    WholeBodyState,
-    WholeBodyControllerCommand
 )
 from rclpy.node import Node
 from scipy.spatial.transform import Rotation
@@ -102,65 +100,83 @@ def generate_joint_space_command_msg(
 
     return msg_
 
-def generate_joint_space_acc_command_msg(
-    joint_id, qdd_desired
-):
-    """Generates a joint space acc command msg.
 
+class WholeBodyTrajectoryPublisher(Node):
+    """A helper/example class to publish whole body trajectory messages.
+
+    Constructor parameters:
+    - initial_trajectory_msg (WholeBodyTrajectory): if not None, this is published first.
+      Default: None
+    - periodic_trajectory_msg (WholeBodyTrajectory): if not None, this is published
+      on a loop upon completion of initial_trajectory_msg if it was provided. Default: None
     """
 
-    msg_ = JointSpaceCommand(joint=JointName(joint_id=joint_id))
-    # Disable PD control such that only feedforward acc control
-    msg_.use_default_gains = False
-    msg_.stiffness = 0.0
-    msg_.damping = 0.0
-    msg_.qdd_desired = qdd_desired
-
-    return msg_
-
-class WholeBodyCommandPublisher(Node):
-    """A helper/example class to publish whole body controller messages.
-    """
-
-    def __init__(self, whole_body_command_msg=None):
+    def __init__(self, initial_trajectory_msg=None, periodic_trajectory_msg=None):
         super().__init__(
-            "right_hand_accleration_rt"
+            "right_hand_task_space_slide"
         )  # initialize the underlying Node with the name whole_body_robot_bringup
 
         # 10 is overloaded for being 10 deep history QoS
         self._publisher = self.create_publisher(
-            WholeBodyControllerCommand, "/eve/whole_body_command", rclpy.qos.qos_profile_system_default
+            WholeBodyTrajectory, "/eve/whole_body_trajectory", rclpy.qos.qos_profile_action_status_default 
         )
 
         self._subscriber = self.create_subscription(
-            WholeBodyState, "/eve/whole_body_state", self.whole_body_state_cb, rclpy.qos.qos_profile_sensor_data
-        )  # create a WholeBodyState subscriber with inbound queue size of 10
+            GoalStatus, "/eve/whole_body_trajectory_status", self.goal_status_cb, 10
+        )  # create a GoalStatus subscriber with inbound queue size of 10
 
-        # # store periodic_trajectory_msg for re-publishing in goal_status_cb
-        self._whole_body_command_msg = whole_body_command_msg
+        if initial_trajectory_msg is not None:
+            initial_trajectory_msg.trajectory_id = generate_uuid_msg()  # populate UUID
+            self.get_logger().info("Publishing initial trajectory ...")
+            self._publisher.publish(
+                initial_trajectory_msg
+            )  # publish initial_trajectory_msg
+        else:
+            periodic_trajectory_msg.trajectory_id = generate_uuid_msg()  # populate UUID
+            self.get_logger().info("Publishing first periodic trajectory ...")
+            self._publisher.publish(
+                periodic_trajectory_msg
+            )  # publish periodic_trajectory_msg instead
 
-        timer_period = 0.002  # seconds
+        # store periodic_trajectory_msg for re-publishing in goal_status_cb
+        self._periodic_trajectory_msg = periodic_trajectory_msg
+
+        timer_period = 1.0  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
-        # self.status_msg_received_ever = False
+        self.status_msg_received_ever = False
 
     def timer_callback(self):
-        # if not self.status_msg_received_ever:
-        #     self.get_logger().info("Publishing msg from timer")
-        self._publisher.publish(self._whole_body_command_msg)
+        if not self.status_msg_received_ever:
+            self.get_logger().info("Publishing msg from timer")
+            self._publisher.publish(self._periodic_trajectory_msg)
 
-    def whole_body_state_cb(self, msg):
-        """WholeBodyState callback. 
+    def goal_status_cb(self, msg):
+        """GoalStatus callback. Logs/prints some statuses and re-pubishes
+           periodic_trajectory_msg if it was provided to the constructor.
 
         Parameters:
         - msg (GoalStatus): msg from a GoalStatus subscription
 
         Returns: None
         """
-        diff = msg.joint_states[JointName.RIGHT_ELBOW_PITCH].desiredEffort - msg.joint_states[JointName.RIGHT_ELBOW_PITCH].measuredEffort
-        # self.get_logger().info("Received whole_body_state, difference between desired and actual force is: {0}"\
-        #     .format(str(diff)))
-        self.get_logger().info("Desired = {0}, measured = {1}".format(str(msg.joint_states[JointName.RIGHT_ELBOW_PITCH].desiredEffort), str(msg.joint_states[JointName.RIGHT_ELBOW_PITCH].measuredEffort)))
-        # self.get_logger().info(str(msg.joint_states[JointName.RIGHT_ELBOW_PITCH].measuredEffort))
+
+        if not self.status_msg_received_ever:
+            self.timer.cancel()
+            self.get_logger().info("Timer is cancelled")
+            self.status_msg_received_ever = True
+
+        if msg.status == GoalStatus.STATUS_ACCEPTED:
+            self.get_logger().info("Goal accepted")
+        elif msg.status == GoalStatus.STATUS_CANCELED:
+            self.get_logger().info("Goal canceled")
+        elif msg.status == GoalStatus.STATUS_ABORTED:
+            self.get_logger().info("Goal aborted")
+        elif msg.status == GoalStatus.STATUS_SUCCEEDED:
+            self.get_logger().info("Goal succeeded!")
+            if self._periodic_trajectory_msg is not None:
+                self.get_logger().info("Republishing periodic trajectory ...")
+                self._periodic_trajectory_msg.trajectory_id = generate_uuid_msg()
+                self._publisher.publish(self._periodic_trajectory_msg)
 
 
 def run_warmup_loop(args=None):
@@ -172,27 +188,42 @@ def run_warmup_loop(args=None):
     Returns: None
     """
 
+    NOMINAL_PELVIS_HEIGHT_ABOVE_BASE = 0.91
+    cumulative_seconds_from_start_ = 0
+
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 2
+    periodic_trajectory_pt_msg_1_ = WholeBodyTrajectoryPoint(
+        time_from_start=Duration(sec=cumulative_seconds_from_start_)
+    )  # create a trajectory point msg, timestamped for 3 seconds in the future
+    periodic_trajectory_pt_msg_1_.task_space_commands.append(
+        generate_task_space_command_msg(
+            ReferenceFrameName.RIGHT_HAND,
+            ReferenceFrameName.PELVIS,
+            [0.25, -0.25, 0.15, 0.0, -np.deg2rad(90.0), 0.0],
+        )
+    )  # append a desired task space pose for the pelvis WRT base
+    # [posX, posY, posZ, roll, pitch, yaw]
+
+    periodic_trajectory_msg_ = WholeBodyTrajectory(
+        append_trajectory=False
+    )  # create a whole body trajectory msg that will
+    # override any trajectory currently being executed
+    periodic_trajectory_msg_.interpolation_mode.value = (
+        TrajectoryInterpolation.MINIMUM_JERK_CONSTRAINED
+    )  # choose an interpolation mode
+    
+    periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_1_)
 
     rclpy.init(args=args)  # initialize rclpy
 
-
-    whole_body_command_msg_ = WholeBodyControllerCommand();
-
-    whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
-        JointName.RIGHT_ELBOW_PITCH, -0.0
-        ))
-    # whole_body_command_msg_.task_space_commands.append(generate_task_space_command_msg(
-    #     ReferenceFrameName.RIGHT_HAND, ReferenceFrameName.PELVIS, [0.0, -0.01, 0.0]
-    #     ))
-
-    wbcp_ = WholeBodyCommandPublisher(
-        whole_body_command_msg_
+    wbtp_ = WholeBodyTrajectoryPublisher(
+        None, periodic_trajectory_msg_
     )  # create the helper class
     rclpy.spin(
-        wbcp_
+        wbtp_
     )  # spin the node in the WholeBodyTrajectoryPublisher for blocking and pub/sub functionality
 
-    wbcp_.destroy_node()  # shut down the node
+    wbtp_.destroy_node()  # shut down the node
     rclpy.shutdown()  # shut down rclpy
 
 

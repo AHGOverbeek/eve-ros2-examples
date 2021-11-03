@@ -174,29 +174,35 @@ def run_warmup_loop(args=None):
 
     whole_body_command_msg_ = WholeBodyControllerCommand();
 
-    whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
-        JointName.RIGHT_SHOULDER_PITCH, 0.0
-        ))
-    whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
-        JointName.RIGHT_SHOULDER_ROLL, 0.0
-        ))
-    whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
-        JointName.RIGHT_SHOULDER_YAW, 0.0
-        ))
+    # Make left and/or right low impedance
+    left = True 
+    right = True
+    # The joint are just numbers
+    for joint in left*list(range(JointName.LEFT_SHOULDER_PITCH, JointName.LEFT_WRIST_ROLL)) + right*list(range(JointName.RIGHT_SHOULDER_PITCH, JointName.RIGHT_WRIST_ROLL)):
+        whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(joint, 0.0))
+    # whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
+    #     JointName.RIGHT_SHOULDER_PITCH, 0.0
+    #     ))
+    # whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
+    #     JointName.RIGHT_SHOULDER_ROLL, 0.0
+    #     ))
+    # whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
+    #     JointName.RIGHT_SHOULDER_YAW, 0.0
+    #     ))
 
-    whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
-        JointName.RIGHT_ELBOW_YAW, 0.0
-        ))
-    whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
-        JointName.RIGHT_ELBOW_PITCH, 0.0
-        ))
+    # whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
+    #     JointName.RIGHT_ELBOW_YAW, 0.0
+    #     ))
+    # whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
+    #     JointName.RIGHT_ELBOW_PITCH, 0.0
+    #     ))
 
-    whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
-        JointName.RIGHT_WRIST_PITCH, 20.0
-        ))
-    whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
-        JointName.RIGHT_WRIST_ROLL, 0.0
-        ))
+    # whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
+    #     JointName.RIGHT_WRIST_PITCH, 20.0
+    #     ))
+    # whole_body_command_msg_.joint_space_commands.append(generate_joint_space_acc_command_msg(
+    #     JointName.RIGHT_WRIST_ROLL, 0.0
+    #     ))
 
     wbcp_ = WholeBodyCommandPublisher(
         whole_body_command_msg_

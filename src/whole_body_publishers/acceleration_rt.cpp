@@ -98,12 +98,12 @@ private:
     ret_msg.stiffness = 0.0;
     ret_msg.damping = 0.0;
     // acceleration can then be given directly
-    ret_msg.qdd_desired = -0.1;
+    ret_msg.qdd_desired = -0.0;
 
     WholeBodyControllerCommand torque_msg;
     torque_msg.joint_space_commands.push_back(ret_msg);
     
-    RCLCPP_INFO(this->get_logger(), "Sending acceleration");
+    // RCLCPP_INFO(this->get_logger(), "Sending acceleration");
 
     publisher_->publish(torque_msg);
   }

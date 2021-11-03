@@ -120,6 +120,9 @@ install(PROGRAMS
   ${PROJECT_NAME}/hands_position_circle_rt.py
   ${PROJECT_NAME}/hands_position_box.py
   ${PROJECT_NAME}/hands_can_clamp.py
+  ${PROJECT_NAME}/hands_air.py
+  ${PROJECT_NAME}/right_hand_scissor.py
+  ${PROJECT_NAME}/head.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
