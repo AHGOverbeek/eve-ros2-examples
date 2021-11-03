@@ -123,6 +123,8 @@ install(PROGRAMS
   ${PROJECT_NAME}/hands_air.py
   ${PROJECT_NAME}/right_hand_scissor.py
   ${PROJECT_NAME}/head.py
+  ${PROJECT_NAME}/ribbon.py
+  ${PROJECT_NAME}/default_side.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

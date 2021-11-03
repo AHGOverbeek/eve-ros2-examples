@@ -196,17 +196,16 @@ def run_warmup_loop(args=None):
         time_from_start=Duration(sec=cumulative_seconds_from_start_)
     )  # create a trajectory point msg, timestamped for 3 seconds in the future
     periodic_trajectory_pt_msg_1_.joint_space_commands.append(
-        generate_joint_space_command_msg(JointName.RIGHT_WRIST_ROLL, 1.5)
+        generate_joint_space_command_msg(JointName.NECK_PITCH, -0.1)
     )
 
-
-    # cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 4
-    # periodic_trajectory_pt_msg_2_ = WholeBodyTrajectoryPoint(
-    #     time_from_start=Duration(sec=cumulative_seconds_from_start_)
-    # )  # create a trajectory point msg, timestamped for 3 seconds in the future
-    # periodic_trajectory_pt_msg_2_.joint_space_commands.append(
-    #     generate_joint_space_command_msg(JointName.NECK_PITCH, -0.2)
-    # )
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 4
+    periodic_trajectory_pt_msg_2_ = WholeBodyTrajectoryPoint(
+        time_from_start=Duration(sec=cumulative_seconds_from_start_)
+    )  # create a trajectory point msg, timestamped for 3 seconds in the future
+    periodic_trajectory_pt_msg_2_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.NECK_PITCH, -0.0)
+    )
 
     periodic_trajectory_msg_ = WholeBodyTrajectory(
         append_trajectory=False
@@ -215,8 +214,9 @@ def run_warmup_loop(args=None):
     periodic_trajectory_msg_.interpolation_mode.value = (
         TrajectoryInterpolation.MINIMUM_JERK_CONSTRAINED
     )  # choose an interpolation mode
+
     periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_1_)
-    # periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_2_)
+    periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_2_)
 
     rclpy.init(args=args)  # initialize rclpy
 

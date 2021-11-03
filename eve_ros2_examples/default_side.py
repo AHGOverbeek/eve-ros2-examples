@@ -113,10 +113,11 @@ class WholeBodyTrajectoryPublisher(Node):
 
     def __init__(self, initial_trajectory_msg=None, periodic_trajectory_msg=None):
         super().__init__(
-            "right_hand_task_space_slide"
-        )  # initialize the underlying Node with the name whole_body_robot_bringup
+            "all_joint_move"
+        )  # initialize the underlying Node with the name all_joint_move
 
         # 10 is overloaded for being 10 deep history QoS
+        # Sometimes QoS = 10 does not work (no idea why, seems platform dependent), if not, use rclpy.qos.qos_profile_action_status_default instead
         self._publisher = self.create_publisher(
             WholeBodyTrajectory, "/eve/whole_body_trajectory", rclpy.qos.qos_profile_action_status_default 
         )
@@ -141,7 +142,7 @@ class WholeBodyTrajectoryPublisher(Node):
         # store periodic_trajectory_msg for re-publishing in goal_status_cb
         self._periodic_trajectory_msg = periodic_trajectory_msg
 
-        timer_period = 1.0  # seconds
+        timer_period = 0.001  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.status_msg_received_ever = False
 
@@ -173,7 +174,6 @@ class WholeBodyTrajectoryPublisher(Node):
             self.get_logger().info("Goal aborted")
         elif msg.status == GoalStatus.STATUS_SUCCEEDED:
             self.get_logger().info("Goal succeeded!")
-            # self.timer.destroy()
             if self._periodic_trajectory_msg is not None:
                 self.get_logger().info("Republishing periodic trajectory ...")
                 self._periodic_trajectory_msg.trajectory_id = generate_uuid_msg()
@@ -189,38 +189,78 @@ def run_warmup_loop(args=None):
     Returns: None
     """
 
-    NOMINAL_PELVIS_HEIGHT_ABOVE_BASE = 0.91
     cumulative_seconds_from_start_ = 0
 
-    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 5
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 1
     periodic_trajectory_pt_msg_1_ = WholeBodyTrajectoryPoint(
         time_from_start=Duration(sec=cumulative_seconds_from_start_)
     )  # create a trajectory point msg, timestamped for 3 seconds in the future
     periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.RIGHT_SHOULDER_PITCH, 0.2)
+    )  # append a desired joint position of 0.5 radians for the pitch of the right shoulder
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.RIGHT_SHOULDER_ROLL, -1.0)
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.RIGHT_SHOULDER_YAW, 1.5)
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.RIGHT_ELBOW_PITCH, -1.5)
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.RIGHT_ELBOW_YAW, -0.0)
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.RIGHT_WRIST_PITCH, 0.0)
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.RIGHT_WRIST_ROLL, -0.0)
+    )
+
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.LEFT_SHOULDER_PITCH, 0.2)
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.LEFT_SHOULDER_ROLL, +1.0)
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.LEFT_SHOULDER_YAW, -1.5)
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.LEFT_ELBOW_PITCH, -1.5)
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.LEFT_ELBOW_YAW, 0.0)
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.LEFT_WRIST_PITCH, 0.0)
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.LEFT_WRIST_ROLL, 0.0)
+    )
+
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
         generate_joint_space_command_msg(JointName.NECK_PITCH, 0.0)
-    )  
-    periodic_trajectory_pt_msg_1_.task_space_commands.append(
-        generate_task_space_command_msg(
-            ReferenceFrameName.RIGHT_HAND,
-            ReferenceFrameName.PELVIS,
-            [0.25, -0.3, 0.15, 0.0, -np.deg2rad(75.0), 0.0],
-        )
-    )  # append a desired task space pose for the pelvis WRT base
-    # [posX, posY, posZ, roll/palm close(positive), pitch/deviation outward (positive), yaw ()]
-    periodic_trajectory_pt_msg_1_.task_space_commands.append(
-        generate_task_space_command_msg(
-            ReferenceFrameName.LEFT_HAND,
-            ReferenceFrameName.PELVIS,
-            [0.1, 0.3, 0.0, -0.0, -np.deg2rad(35.0), 0.0],
-        )
-    )  
-    # periodic_trajectory_pt_msg_1_.task_space_commands.append(
-    #     generate_task_space_command_msg(
-    #         ReferenceFrameName.LEFT_HAND,
-    #         ReferenceFrameName.PELVIS,
-    #         [-0.1, 0.25, 0.2, -0.5, -np.deg2rad(45.0), 0.2],
-    #     )
-    # )  
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.HIP_PITCH, 0.0)
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.HIP_ROLL, 0.0)
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.HIP_YAW, 0.0)
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.KNEE_PITCH ,0.0)
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.ANKLE_PITCH, 0.0)
+    )
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.ANKLE_ROLL, 0.0)
+    )
+
 
     periodic_trajectory_msg_ = WholeBodyTrajectory(
         append_trajectory=False
@@ -229,7 +269,6 @@ def run_warmup_loop(args=None):
     periodic_trajectory_msg_.interpolation_mode.value = (
         TrajectoryInterpolation.MINIMUM_JERK_CONSTRAINED
     )  # choose an interpolation mode
-    
     periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_1_)
 
     rclpy.init(args=args)  # initialize rclpy
