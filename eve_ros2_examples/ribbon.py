@@ -219,7 +219,7 @@ def run_warmup_loop(args=None):
 
 
     # Wait 2 sec of the same
-    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 1
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 2
     periodic_trajectory_pt_msg_2_ = WholeBodyTrajectoryPoint(
         time_from_start=Duration(sec=cumulative_seconds_from_start_)
     )  # create a trajectory point msg, timestamped for 3 seconds in the future
