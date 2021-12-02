@@ -160,7 +160,7 @@ class WholeBodyCommandPublisher(Node):
         # self.get_logger().info("Received whole_body_state, difference between desired and actual force is: {0}"\
         #     .format(str(diff)))
         self.get_logger().info("Desired = {0}, measured = {1}".format(str(msg.joint_states[JointName.RIGHT_ELBOW_PITCH].desiredEffort), str(msg.joint_states[JointName.RIGHT_ELBOW_PITCH].measuredEffort)))
-        # self.get_logger().info(str(msg.joint_states[JointName.RIGHT_ELBOW_PITCH].measuredEffort))
+        # self.get_logger().info(str(msg.joint_states[JointName.RIGHT_ELBOW_PITCH].desiredEffort))
 
 
 def run_warmup_loop(args=None):
