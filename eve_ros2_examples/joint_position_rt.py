@@ -1,50 +1,14 @@
 #!/usr/bin/env python3
 
-# Copyright 2021 Halodi Robotics
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-import uuid
-
-import numpy as np
 import rclpy
 import rclpy.qos
-from action_msgs.msg import GoalStatus
-from builtin_interfaces.msg import Duration
 from halodi_msgs.msg import (
     JointName,
     JointSpaceCommand,
-    ReferenceFrameName,
-    TaskSpaceCommand,
-    TrajectoryInterpolation,
-    WholeBodyTrajectory,
-    WholeBodyTrajectoryPoint,
     WholeBodyState,
     WholeBodyControllerCommand
 )
 from rclpy.node import Node
-from scipy.spatial.transform import Rotation
-from unique_identifier_msgs.msg import UUID
-
-
-def generate_uuid_msg():
-    """Generates a UUID msg based on the current time.
-
-    Parameters: None
-
-    Returns: UUID msg
-    """
-    return UUID(uuid=np.asarray(list(uuid.uuid1().bytes)).astype(np.uint8))
 
 def generate_joint_space_command_msg(
     joint_id, q_desired, qd_desired=0.0, qdd_desired=0.0
@@ -63,8 +27,14 @@ def generate_joint_space_command_msg(
     Returns: JointSpaceCommand msg
     """
 
-    # Needs different PD gains for use in real life
     msg_ = JointSpaceCommand(joint=JointName(joint_id=joint_id), use_default_gains=True)
+
+    # Maybe set some weaker PD gains, because the defaults are quite stiff. Why does this not work? What are the size of the units?
+    # msg_.use_default_gains = False
+    # msg_.stiffness = 0.5
+    # msg_.damping = 0.5
+
+    # Set references
     msg_.q_desired = q_desired
     msg_.qd_desired = qd_desired
     msg_.qdd_desired = qdd_desired
@@ -79,54 +49,31 @@ class WholeBodyCommandPublisher(Node):
     def __init__(self, whole_body_command_msg=None):
         super().__init__(
             "joint_position_rt"
-        )  # initialize the underlying Node with the name whole_body_robot_bringup
+        )
 
-        # 10 is overloaded for being 10 deep history QoS
+        # Create publisher to send to WholeBodyControllerCommand
         self._publisher = self.create_publisher(
             WholeBodyControllerCommand, "/eve/whole_body_command", rclpy.qos.qos_profile_services_default
         )
 
+        # Proper implementation waits for WholeBodyState's callback and then sends its WholeBodyControllerCommand
         self._subscriber = self.create_subscription(
             WholeBodyState, "/eve/whole_body_state", self.whole_body_state_cb, rclpy.qos.qos_profile_sensor_data
-        )  # create a WholeBodyState subscriber with inbound queue size of 10
+        )
 
-        # initialize
+        # Initialize from node's passed argument
         self._whole_body_command_msg = whole_body_command_msg
 
-        timer_period = 0.002  # seconds
-        self.timer = self.create_timer(timer_period, self.timer_callback)
-
-    def timer_callback(self):
-        # Publish on every timer callback
-        # self._publisher.publish(self._whole_body_command_msg)
-        pass
-
     def whole_body_state_cb(self, msg):
-        """GoalStatus callback. Logs/prints some statuses and re-pubishes
-           periodic_trajectory_msg if it was provided to the constructor.
-
-        Parameters:
-        - msg (GoalStatus): msg from a GoalStatus subscription
-
-        Returns: None
-        """
         self._publisher.publish(self._whole_body_command_msg)
 
-def run_warmup_loop(args=None):
-    """An example function that moves all the joints in a repeated movement sequence.
+def main():
 
-    Parameters:
-    - args (?): for rclpy.init(). Default: None
-
-    Returns: None
-    """
-
-
-    rclpy.init(args=args)  # initialize rclpy
-
+    rclpy.init()  
 
     whole_body_command_msg_ = WholeBodyControllerCommand();
 
+    # Manually set all reference positions, here to a kind off T-pose
     whole_body_command_msg_.joint_space_commands.append(generate_joint_space_command_msg(
         JointName.RIGHT_SHOULDER_ROLL, -0.2
         ))
@@ -200,16 +147,15 @@ def run_warmup_loop(args=None):
         JointName.ANKLE_ROLL, 0.0
         ))
 
-    wbcp_ = WholeBodyCommandPublisher(
-        whole_body_command_msg_
-    )  # create the helper class
-    rclpy.spin(
-        wbcp_
-    )  # spin the node in the WholeBodyTrajectoryPublisher for blocking and pub/sub functionality
+    node = WholeBodyCommandPublisher(whole_body_command_msg_)
 
-    wbcp_.destroy_node()  # shut down the node
-    rclpy.shutdown()  # shut down rclpy
-
+    # Spin here keeps the script waiting for what its subscribed to instead of finishing
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+        
+    rclpy.shutdown()
 
 if __name__ == "__main__":
-    run_warmup_loop()
+    main()

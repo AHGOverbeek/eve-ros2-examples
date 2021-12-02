@@ -115,7 +115,7 @@ install(PROGRAMS
   ${PROJECT_NAME}/all_joint_move.py 
   ${PROJECT_NAME}/joint_position_rt.py 
   ${PROJECT_NAME}/joint_acceleration_rt.py
-  ${PROJECT_NAME}/low_impedance_right_rt.py 
+  ${PROJECT_NAME}/low_impedance_rt.py 
   ${PROJECT_NAME}/task_acceleration_rt.py 
   ${PROJECT_NAME}/hands_position_circle_rt.py
   ${PROJECT_NAME}/hands_position_box.py
@@ -125,6 +125,8 @@ install(PROGRAMS
   ${PROJECT_NAME}/head.py
   ${PROJECT_NAME}/ribbon.py
   ${PROJECT_NAME}/default_side.py
+  ${PROJECT_NAME}/ee_pose_stream.py
+  ${PROJECT_NAME}/joint_acceleration_rt_timed.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

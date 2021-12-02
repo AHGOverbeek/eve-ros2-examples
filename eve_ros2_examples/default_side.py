@@ -44,38 +44,6 @@ def generate_uuid_msg():
     """
     return UUID(uuid=np.asarray(list(uuid.uuid1().bytes)).astype(np.uint8))
 
-
-def generate_task_space_command_msg(
-    body_frame_id, expressed_in_frame_id, xyzrpy, z_up=True
-):
-    """Generates a task space command msg.
-
-    Parameters:
-    - body_frame_id (enum): body part to be moved, e.g. ReferenceFrameName.PELVIS
-    - expressed_in_frame_id (enum): reference frame for body_frame_id, e.g. ReferenceFrameName.BASE
-    - xyzrpy (array of 6 floats): desired pose of body_frame_id relative to expressed_in_frame_id
-      , as a list/tuple/1D np.array of [ posX, posY, posZ, rotX, rotY, rotZ ]
-    - z_up (bool): whether or not xyzrpy follows the Z-up co-ordinate convention. Default: True
-
-    Returns: TaskSpaceCommand msg
-    """
-
-    msg_ = TaskSpaceCommand(express_in_z_up=z_up)
-    msg_.body_frame.frame_id = body_frame_id
-    msg_.expressed_in_frame.frame_id = expressed_in_frame_id
-
-    msg_.pose.position.x = xyzrpy[0]
-    msg_.pose.position.y = xyzrpy[1]
-    msg_.pose.position.z = xyzrpy[2]
-    quat_ = Rotation.from_euler("xyz", xyzrpy[3:]).as_quat()  # Euler to quaternion
-    msg_.pose.orientation.x = quat_[0]
-    msg_.pose.orientation.y = quat_[1]
-    msg_.pose.orientation.z = quat_[2]
-    msg_.pose.orientation.w = quat_[3]
-
-    return msg_
-
-
 def generate_joint_space_command_msg(
     joint_id, q_desired, qd_desired=0.0, qdd_desired=0.0
 ):
