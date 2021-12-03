@@ -22,8 +22,6 @@ import rclpy.qos
 from action_msgs.msg import GoalStatus
 from builtin_interfaces.msg import Duration
 from halodi_msgs.msg import (
-    JointName,
-    JointSpaceCommand,
     ReferenceFrameName,
     TaskSpaceCommand,
     TrajectoryInterpolation,
@@ -87,12 +85,12 @@ class WholeBodyTrajectoryPublisher(Node):
 
     def __init__(self, initial_trajectory_msg=None, periodic_trajectory_msg=None):
         super().__init__(
-            "right_hand_task_space_slide"
+            "demo_can_clamp"
         )  # initialize the underlying Node with the name whole_body_robot_bringup
 
         # 10 is overloaded for being 10 deep history QoS
         self._publisher = self.create_publisher(
-            WholeBodyTrajectory, "/eve/whole_body_trajectory", rclpy.qos.qos_profile_action_status_default 
+            WholeBodyTrajectory, "/eve/whole_body_trajectory", rclpy.qos.qos_profile_action_status_default  
         )
 
         self._subscriber = self.create_subscription(
@@ -165,7 +163,14 @@ def run_warmup_loop(args=None):
     NOMINAL_PELVIS_HEIGHT_ABOVE_BASE = 0.91
     cumulative_seconds_from_start_ = 0
 
-    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 1
+    x = 0.3
+    z1 = 0.2
+    z2 = 0.3
+    y1 = 0.4
+    y2 = 0.1
+    y3 = 0.0
+
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 2
     periodic_trajectory_pt_msg_1_ = WholeBodyTrajectoryPoint(
         time_from_start=Duration(sec=cumulative_seconds_from_start_)
     )  # create a trajectory point msg, timestamped for 3 seconds in the future
@@ -173,7 +178,7 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.RIGHT_HAND,
             ReferenceFrameName.PELVIS,
-            [0.25, -0.15, 0.25, 0.0, -np.deg2rad(90.0), 0.0],
+            [x, -y1, z1, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
@@ -181,7 +186,7 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.LEFT_HAND,
             ReferenceFrameName.PELVIS,
-            [0.25, 0.15, 0.25, 0.0, -np.deg2rad(90.0), 0.0],
+            [x, y1, z1, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
@@ -194,7 +199,7 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.RIGHT_HAND,
             ReferenceFrameName.PELVIS,
-            [0.25, -0.15, 0.0, 0.0, -np.deg2rad(90.0), 0.0],
+            [x, -y1, z1, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
@@ -202,7 +207,7 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.LEFT_HAND,
             ReferenceFrameName.PELVIS,
-            [0.25, 0.15, 0.0, 0.0, -np.deg2rad(90.0), 0.0],
+            [x, y1, z1, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
@@ -215,7 +220,7 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.RIGHT_HAND,
             ReferenceFrameName.PELVIS,
-            [0.25, -0.4, 0.0, 0.0, -np.deg2rad(90.0), 0.0],
+            [x, -y2, z1, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
@@ -223,7 +228,7 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.LEFT_HAND,
             ReferenceFrameName.PELVIS,
-            [0.25, 0.4, 0.0, 0.0, -np.deg2rad(90.0), 0.0],
+            [x, y2, z1, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
@@ -236,7 +241,7 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.RIGHT_HAND,
             ReferenceFrameName.PELVIS,
-            [0.25, -0.4, 0.25, 0.0, -np.deg2rad(90.0), 0.0],
+            [x, -y3, z1, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
@@ -244,7 +249,7 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.LEFT_HAND,
             ReferenceFrameName.PELVIS,
-            [0.25, 0.4, 0.25, 0.0, -np.deg2rad(90.0), 0.0],
+            [x, y3, z1, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
@@ -257,7 +262,7 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.RIGHT_HAND,
             ReferenceFrameName.PELVIS,
-            [0.25, -0.15, 0.25, 0.0, -np.deg2rad(90.0), 0.0],
+            [x, -y3, z2, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
@@ -265,7 +270,28 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.LEFT_HAND,
             ReferenceFrameName.PELVIS,
-            [0.25, 0.15, 0.25, 0.0, -np.deg2rad(90.0), 0.0],
+            [x, y3, z2, 0.0, -np.deg2rad(90.0), 0.0],
+        )
+    )  # append a desired task space pose for the pelvis WRT base
+    # [posX, posY, posZ, roll, pitch, yaw]
+
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 1
+    periodic_trajectory_pt_msg_6_ = WholeBodyTrajectoryPoint(
+        time_from_start=Duration(sec=cumulative_seconds_from_start_)
+    )  # create another trajectory point msg, 1 additional second in the future
+    periodic_trajectory_pt_msg_6_.task_space_commands.append(
+        generate_task_space_command_msg(
+            ReferenceFrameName.RIGHT_HAND,
+            ReferenceFrameName.PELVIS,
+            [x, -y3, z2, 0.0, -np.deg2rad(90.0), 0.0],
+        )
+    )  # append a desired task space pose for the pelvis WRT base
+    # [posX, posY, posZ, roll, pitch, yaw]
+    periodic_trajectory_pt_msg_6_.task_space_commands.append(
+        generate_task_space_command_msg(
+            ReferenceFrameName.LEFT_HAND,
+            ReferenceFrameName.PELVIS,
+            [x, y3, z2, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
@@ -282,6 +308,7 @@ def run_warmup_loop(args=None):
     periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_3_)
     periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_4_)
     periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_5_)
+    # periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_6_)
 
     rclpy.init(args=args)  # initialize rclpy
 

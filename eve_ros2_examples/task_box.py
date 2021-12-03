@@ -22,11 +22,14 @@ import rclpy.qos
 from action_msgs.msg import GoalStatus
 from builtin_interfaces.msg import Duration
 from halodi_msgs.msg import (
+    JointName,
+    JointSpaceCommand,
     ReferenceFrameName,
     TaskSpaceCommand,
     TrajectoryInterpolation,
     WholeBodyTrajectory,
     WholeBodyTrajectoryPoint,
+    JointNullSpaceConfiguration
 )
 from rclpy.node import Node
 from scipy.spatial.transform import Rotation
@@ -74,68 +77,42 @@ def generate_task_space_command_msg(
     return msg_
 
 class WholeBodyTrajectoryPublisher(Node):
-    """A helper/example class to publish whole body trajectory messages.
 
-    Constructor parameters:
-    - initial_trajectory_msg (WholeBodyTrajectory): if not None, this is published first.
-      Default: None
-    - periodic_trajectory_msg (WholeBodyTrajectory): if not None, this is published
-      on a loop upon completion of initial_trajectory_msg if it was provided. Default: None
-    """
-
-    def __init__(self, initial_trajectory_msg=None, periodic_trajectory_msg=None):
+    def __init__(self, periodic_trajectory_msg=None):
         super().__init__(
-            "right_hand_task_space_slide"
+            "task_box"
         )  # initialize the underlying Node with the name whole_body_robot_bringup
 
         # 10 is overloaded for being 10 deep history QoS
         self._publisher = self.create_publisher(
-            WholeBodyTrajectory, "/eve/whole_body_trajectory", rclpy.qos.qos_profile_action_status_default  
+            WholeBodyTrajectory, "/eve/whole_body_trajectory", rclpy.qos.qos_profile_action_status_default 
         )
 
         self._subscriber = self.create_subscription(
             GoalStatus, "/eve/whole_body_trajectory_status", self.goal_status_cb, 10
         )  # create a GoalStatus subscriber with inbound queue size of 10
 
-        if initial_trajectory_msg is not None:
-            initial_trajectory_msg.trajectory_id = generate_uuid_msg()  # populate UUID
-            self.get_logger().info("Publishing initial trajectory ...")
-            self._publisher.publish(
-                initial_trajectory_msg
-            )  # publish initial_trajectory_msg
-        else:
-            periodic_trajectory_msg.trajectory_id = generate_uuid_msg()  # populate UUID
-            self.get_logger().info("Publishing first periodic trajectory ...")
-            self._publisher.publish(
-                periodic_trajectory_msg
-            )  # publish periodic_trajectory_msg instead
+        # Create publisher to the nullspace configurator
+        self._publisher_ns = self.create_publisher(
+            JointNullSpaceConfiguration, "/eve/joint_null_space_configuration", rclpy.qos.qos_profile_action_status_default 
+        )
+
+        ms = JointNullSpaceConfiguration()
+        joint = JointName()
+        joint.joint_id = JointName.LEFT_SHOULDER_PITCH
+        ms.joint = joint
+        ms.q_nullspace = -1.5
+        self._publisher_ns.publish(ms)  
 
         # store periodic_trajectory_msg for re-publishing in goal_status_cb
         self._periodic_trajectory_msg = periodic_trajectory_msg
 
-        timer_period = 1.0  # seconds
-        self.timer = self.create_timer(timer_period, self.timer_callback)
-        self.status_msg_received_ever = False
-
-    def timer_callback(self):
-        if not self.status_msg_received_ever:
-            self.get_logger().info("Publishing msg from timer")
-            self._publisher.publish(self._periodic_trajectory_msg)
+        # Trajectory messages need an uuid, not properly using it here
+        self._periodic_trajectory_msg.trajectory_id = generate_uuid_msg()  # populate UUID
+        self.get_logger().info("Publishing first periodic trajectory ...")
+        self._publisher.publish(self._periodic_trajectory_msg)  
 
     def goal_status_cb(self, msg):
-        """GoalStatus callback. Logs/prints some statuses and re-pubishes
-           periodic_trajectory_msg if it was provided to the constructor.
-
-        Parameters:
-        - msg (GoalStatus): msg from a GoalStatus subscription
-
-        Returns: None
-        """
-
-        if not self.status_msg_received_ever:
-            self.timer.cancel()
-            self.get_logger().info("Timer is cancelled")
-            self.status_msg_received_ever = True
 
         if msg.status == GoalStatus.STATUS_ACCEPTED:
             self.get_logger().info("Goal accepted")
@@ -145,32 +122,23 @@ class WholeBodyTrajectoryPublisher(Node):
             self.get_logger().info("Goal aborted")
         elif msg.status == GoalStatus.STATUS_SUCCEEDED:
             self.get_logger().info("Goal succeeded!")
-            if self._periodic_trajectory_msg is not None:
-                self.get_logger().info("Republishing periodic trajectory ...")
-                self._periodic_trajectory_msg.trajectory_id = generate_uuid_msg()
-                self._publisher.publish(self._periodic_trajectory_msg)
+            self.get_logger().info("Republishing periodic trajectory ...")
+            self._publisher.publish(self._periodic_trajectory_msg)
 
 
-def run_warmup_loop(args=None):
-    """An example function that moves all the joints in a repeated movement sequence.
+def main():
 
-    Parameters:
-    - args (?): for rclpy.init(). Default: None
 
-    Returns: None
-    """
+    x = 0.25
+    y1 = 0.3
+    y2 = 0.5
+    z1 = 0.25
+    z2 = 0.0
+    dt = 1
 
-    NOMINAL_PELVIS_HEIGHT_ABOVE_BASE = 0.91
     cumulative_seconds_from_start_ = 0
 
-    x = 0.3
-    z1 = 0.2
-    z2 = 0.3
-    y1 = 0.4
-    y2 = 0.1
-    y3 = 0.0
-
-    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 2
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + dt
     periodic_trajectory_pt_msg_1_ = WholeBodyTrajectoryPoint(
         time_from_start=Duration(sec=cumulative_seconds_from_start_)
     )  # create a trajectory point msg, timestamped for 3 seconds in the future
@@ -191,7 +159,7 @@ def run_warmup_loop(args=None):
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
 
-    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 1
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + dt
     periodic_trajectory_pt_msg_2_ = WholeBodyTrajectoryPoint(
         time_from_start=Duration(sec=cumulative_seconds_from_start_)
     )  # create another trajectory point msg, 1 additional second in the future
@@ -199,7 +167,7 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.RIGHT_HAND,
             ReferenceFrameName.PELVIS,
-            [x, -y1, z1, 0.0, -np.deg2rad(90.0), 0.0],
+            [x, -y1, z2, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
@@ -207,12 +175,12 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.LEFT_HAND,
             ReferenceFrameName.PELVIS,
-            [x, y1, z1, 0.0, -np.deg2rad(90.0), 0.0],
+            [x, y1, z2, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
 
-    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 1
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + dt
     periodic_trajectory_pt_msg_3_ = WholeBodyTrajectoryPoint(
         time_from_start=Duration(sec=cumulative_seconds_from_start_)
     )  # create another trajectory point msg, 1 additional second in the future
@@ -220,7 +188,7 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.RIGHT_HAND,
             ReferenceFrameName.PELVIS,
-            [x, -y2, z1, 0.0, -np.deg2rad(90.0), 0.0],
+            [x, -y2, z2, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
@@ -228,12 +196,12 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.LEFT_HAND,
             ReferenceFrameName.PELVIS,
-            [x, y2, z1, 0.0, -np.deg2rad(90.0), 0.0],
+            [x, y2, z2, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
 
-    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 1
+    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + dt
     periodic_trajectory_pt_msg_4_ = WholeBodyTrajectoryPoint(
         time_from_start=Duration(sec=cumulative_seconds_from_start_)
     )  # create another trajectory point msg, 1 additional second in the future
@@ -241,7 +209,7 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.RIGHT_HAND,
             ReferenceFrameName.PELVIS,
-            [x, -y3, z1, 0.0, -np.deg2rad(90.0), 0.0],
+            [x, -y2, z1, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
@@ -249,49 +217,7 @@ def run_warmup_loop(args=None):
         generate_task_space_command_msg(
             ReferenceFrameName.LEFT_HAND,
             ReferenceFrameName.PELVIS,
-            [x, y3, z1, 0.0, -np.deg2rad(90.0), 0.0],
-        )
-    )  # append a desired task space pose for the pelvis WRT base
-    # [posX, posY, posZ, roll, pitch, yaw]
-
-    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 1
-    periodic_trajectory_pt_msg_5_ = WholeBodyTrajectoryPoint(
-        time_from_start=Duration(sec=cumulative_seconds_from_start_)
-    )  # create another trajectory point msg, 1 additional second in the future
-    periodic_trajectory_pt_msg_5_.task_space_commands.append(
-        generate_task_space_command_msg(
-            ReferenceFrameName.RIGHT_HAND,
-            ReferenceFrameName.PELVIS,
-            [x, -y3, z2, 0.0, -np.deg2rad(90.0), 0.0],
-        )
-    )  # append a desired task space pose for the pelvis WRT base
-    # [posX, posY, posZ, roll, pitch, yaw]
-    periodic_trajectory_pt_msg_5_.task_space_commands.append(
-        generate_task_space_command_msg(
-            ReferenceFrameName.LEFT_HAND,
-            ReferenceFrameName.PELVIS,
-            [x, y3, z2, 0.0, -np.deg2rad(90.0), 0.0],
-        )
-    )  # append a desired task space pose for the pelvis WRT base
-    # [posX, posY, posZ, roll, pitch, yaw]
-
-    cumulative_seconds_from_start_ = cumulative_seconds_from_start_ + 1
-    periodic_trajectory_pt_msg_6_ = WholeBodyTrajectoryPoint(
-        time_from_start=Duration(sec=cumulative_seconds_from_start_)
-    )  # create another trajectory point msg, 1 additional second in the future
-    periodic_trajectory_pt_msg_6_.task_space_commands.append(
-        generate_task_space_command_msg(
-            ReferenceFrameName.RIGHT_HAND,
-            ReferenceFrameName.PELVIS,
-            [x, -y3, z2, 0.0, -np.deg2rad(90.0), 0.0],
-        )
-    )  # append a desired task space pose for the pelvis WRT base
-    # [posX, posY, posZ, roll, pitch, yaw]
-    periodic_trajectory_pt_msg_6_.task_space_commands.append(
-        generate_task_space_command_msg(
-            ReferenceFrameName.LEFT_HAND,
-            ReferenceFrameName.PELVIS,
-            [x, y3, z2, 0.0, -np.deg2rad(90.0), 0.0],
+            [x, y2, z1, 0.0, -np.deg2rad(90.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
     # [posX, posY, posZ, roll, pitch, yaw]
@@ -307,21 +233,19 @@ def run_warmup_loop(args=None):
     periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_2_)
     periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_3_)
     periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_4_)
-    periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_5_)
-    # periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_6_)
 
-    rclpy.init(args=args)  # initialize rclpy
+    rclpy.init()  # initialize rclpy
 
-    wbtp_ = WholeBodyTrajectoryPublisher(
-        None, periodic_trajectory_msg_
-    )  # create the helper class
-    rclpy.spin(
-        wbtp_
-    )  # spin the node in the WholeBodyTrajectoryPublisher for blocking and pub/sub functionality
+    node = WholeBodyTrajectoryPublisher(periodic_trajectory_msg_)
 
-    wbtp_.destroy_node()  # shut down the node
-    rclpy.shutdown()  # shut down rclpy
+    # Spin means wait and listen for what you're subscribed to, otherwise the script would just end
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+
+    rclpy.shutdown()
 
 
 if __name__ == "__main__":
-    run_warmup_loop()
+    main()

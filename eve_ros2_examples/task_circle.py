@@ -47,7 +47,7 @@ class WholeBodyCommandPublisher(Node):
 
     def __init__(self, whole_body_command_msg=None):
         super().__init__(
-            "hands_position_circle_rt"
+            "task_circle"
         )  # initialize the underlying Node with the name hands_position_circle_rt
 
         # Publisher for WholeBodyControllerCommand, 10 is overloaded for being 10 deep history QoS

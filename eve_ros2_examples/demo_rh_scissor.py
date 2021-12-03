@@ -113,7 +113,7 @@ class WholeBodyTrajectoryPublisher(Node):
 
     def __init__(self, initial_trajectory_msg=None, periodic_trajectory_msg=None):
         super().__init__(
-            "right_hand_task_space_slide"
+            "demo_rh_scissor"
         )  # initialize the underlying Node with the name whole_body_robot_bringup
 
         # 10 is overloaded for being 10 deep history QoS
@@ -173,6 +173,7 @@ class WholeBodyTrajectoryPublisher(Node):
             self.get_logger().info("Goal aborted")
         elif msg.status == GoalStatus.STATUS_SUCCEEDED:
             self.get_logger().info("Goal succeeded!")
+            # self.timer.destroy()
             if self._periodic_trajectory_msg is not None:
                 self.get_logger().info("Republishing periodic trajectory ...")
                 self._periodic_trajectory_msg.trajectory_id = generate_uuid_msg()
@@ -195,23 +196,31 @@ def run_warmup_loop(args=None):
     periodic_trajectory_pt_msg_1_ = WholeBodyTrajectoryPoint(
         time_from_start=Duration(sec=cumulative_seconds_from_start_)
     )  # create a trajectory point msg, timestamped for 3 seconds in the future
+    periodic_trajectory_pt_msg_1_.joint_space_commands.append(
+        generate_joint_space_command_msg(JointName.NECK_PITCH, 0.0)
+    )  
     periodic_trajectory_pt_msg_1_.task_space_commands.append(
         generate_task_space_command_msg(
             ReferenceFrameName.RIGHT_HAND,
             ReferenceFrameName.PELVIS,
-            [0.25, -0.55, 0.9, np.deg2rad(00.0), -np.deg2rad(180.0), -np.deg2rad(90.0)],
+            [0.25, -0.3, 0.15, 0.0, -np.deg2rad(75.0), 0.0],
         )
     )  # append a desired task space pose for the pelvis WRT base
-    # [posX, posY, posZ, roll, pitch, yaw]
+    # [posX, posY, posZ, roll/palm close(positive), pitch/deviation outward (positive), yaw ()]
     periodic_trajectory_pt_msg_1_.task_space_commands.append(
         generate_task_space_command_msg(
             ReferenceFrameName.LEFT_HAND,
             ReferenceFrameName.PELVIS,
-            [0.25, 0.55, 0.9, 0.0, -np.deg2rad(180.0), np.deg2rad(90.0)],
+            [0.1, 0.3, 0.0, -0.0, -np.deg2rad(35.0), 0.0],
         )
-    )  # append a desired task space pose for the pelvis WRT base
-    # [posX, posY, posZ, roll, pitch, yaw]
-
+    )  
+    # periodic_trajectory_pt_msg_1_.task_space_commands.append(
+    #     generate_task_space_command_msg(
+    #         ReferenceFrameName.LEFT_HAND,
+    #         ReferenceFrameName.PELVIS,
+    #         [-0.1, 0.25, 0.2, -0.5, -np.deg2rad(45.0), 0.2],
+    #     )
+    # )  
 
     periodic_trajectory_msg_ = WholeBodyTrajectory(
         append_trajectory=False
@@ -220,6 +229,7 @@ def run_warmup_loop(args=None):
     periodic_trajectory_msg_.interpolation_mode.value = (
         TrajectoryInterpolation.MINIMUM_JERK_CONSTRAINED
     )  # choose an interpolation mode
+    
     periodic_trajectory_msg_.trajectory_points.append(periodic_trajectory_pt_msg_1_)
 
     rclpy.init(args=args)  # initialize rclpy

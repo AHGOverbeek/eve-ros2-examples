@@ -28,7 +28,7 @@ class WholeBodyCommandPublisher(Node):
 
     def __init__(self, whole_body_command_msg=None):
         super().__init__(
-            "joint_acceleration_rt_timed"
+            "joint_acc_rt_timed"
         )  # initialize the underlying Node with the name whole_body_robot_bringup
 
         # Create publisher to be send to at 500 Hz

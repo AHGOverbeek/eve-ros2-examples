@@ -48,7 +48,7 @@ class WholeBodyCommandPublisher(Node):
 
     def __init__(self, whole_body_command_msg=None):
         super().__init__(
-            "joint_position_rt"
+            "joint_pos_rt"
         )
 
         # Create publisher to send to WholeBodyControllerCommand

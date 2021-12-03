@@ -110,23 +110,25 @@ endif()
 #############
 ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
+  ${PROJECT_NAME}/demo_breathe.py 
+  ${PROJECT_NAME}/demo_can_clamp.py 
+  ${PROJECT_NAME}/demo_air.py 
+  ${PROJECT_NAME}/demo_ribbon.py 
+  ${PROJECT_NAME}/demo_rh_scissor.py 
+  ${PROJECT_NAME}/joint_acc_rt_timed.py 
+  ${PROJECT_NAME}/joint_acc_rt.py 
+  ${PROJECT_NAME}/joint_pos_all.py 
+  ${PROJECT_NAME}/joint_pos_default.py 
+  ${PROJECT_NAME}/joint_pos_rt.py 
+  ${PROJECT_NAME}/low_imp_rt.py 
+  ${PROJECT_NAME}/task_acc_rt.py 
+  ${PROJECT_NAME}/task_box.py 
+  ${PROJECT_NAME}/task_circle.py 
+  ${PROJECT_NAME}/task_pos_null_rt.py 
+  ${PROJECT_NAME}/task_pos_rt.py 
+  ${PROJECT_NAME}/task_rh_box.py 
+  ${PROJECT_NAME}/tf_subscribe.py 
   ${PROJECT_NAME}/whole_body_robot_bringup.py 
-  ${PROJECT_NAME}/right_hand_task_space_box.py 
-  ${PROJECT_NAME}/all_joint_move.py 
-  ${PROJECT_NAME}/joint_position_rt.py 
-  ${PROJECT_NAME}/joint_acceleration_rt.py
-  ${PROJECT_NAME}/low_impedance_rt.py 
-  ${PROJECT_NAME}/task_acceleration_rt.py 
-  ${PROJECT_NAME}/hands_position_circle_rt.py
-  ${PROJECT_NAME}/hands_position_box.py
-  ${PROJECT_NAME}/hands_can_clamp.py
-  ${PROJECT_NAME}/hands_air.py
-  ${PROJECT_NAME}/right_hand_scissor.py
-  ${PROJECT_NAME}/head.py
-  ${PROJECT_NAME}/ribbon.py
-  ${PROJECT_NAME}/default_side.py
-  ${PROJECT_NAME}/ee_pose_stream.py
-  ${PROJECT_NAME}/joint_acceleration_rt_timed.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

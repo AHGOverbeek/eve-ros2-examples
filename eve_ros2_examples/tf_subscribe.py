@@ -17,7 +17,7 @@ class EndEffectorPoseListener(Node):
 
     def __init__(self):
         super().__init__(
-            "end_effector_pose_listener"
+            "tf_subscribe"
         )  
  
         # Create a listener/subscriber to the tf topic (done inside TransformListener) and save in a buffer, these are functions made for this purpose 
@@ -28,8 +28,8 @@ class EndEffectorPoseListener(Node):
         self._subscriber = self.create_subscription(TFMessage, "/tf", self.tf_cb, 10)
 
         # Frames that we want to know
-        self.to_frame_rel = 'World'
-        self.from_frame_rel = 'l_palm'
+        self.to_frame_rel = 'pelvis'
+        self.from_frame_rel = 'r_palm'
 
     def tf_cb(self, msg):
 

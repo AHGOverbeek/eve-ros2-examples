@@ -29,7 +29,7 @@ class WholeBodyCommandPublisher(Node):
 
     def __init__(self, whole_body_command_msg=None):
         super().__init__(
-            "low_impedance_rt"
+            "low_imp_rt"
         )  # initialize the underlying Node with the name low_impedance_rt
 
         # 10 is overloaded for being 10 deep history QoS
