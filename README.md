@@ -1,3 +1,6 @@
+**This is a fork of the Halodi repo with added demonstrations, especially for Python.**
+
+---
 # A quick install for Ubuntu 20.04
 Almost the same as on forked repo, but all in one place. 
 Install ROS, Gazebo and the build tools
