@@ -38,9 +38,8 @@ class WholeBodyCommandPublisher(Node):
         )
 
         # The joint to set torque to
-        self.joint = JointName.RIGHT_ELBOW_PITCH
+        self.joint = JointName.LEFT_ELBOW_PITCH
         self.acc_ref = -0.5
-        self.on_time = 1.0
 
         self.dt = 0.002  
 
